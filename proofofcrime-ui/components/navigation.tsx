@@ -2,10 +2,17 @@
 
 import { useState } from "react"
 import { Shield, Menu, X, Wallet } from "lucide-react"
+import { useAppKit, useAppKitAccount } from '@reown/appkit/react'
 import { Button } from "@/components/ui/button"
 
 export default function Navigation() {
   const [isOpen, setIsOpen] = useState(false)
+  const { open } = useAppKit()
+  const { address, isConnected } = useAppKitAccount()
+
+  const truncateAddress = (addr: string) => {
+    return `${addr.slice(0, 6)}...${addr.slice(-4)}`
+  }
 
   return (
     <nav className="fixed top-0 left-0 right-0 glass z-50">
@@ -39,9 +46,12 @@ export default function Navigation() {
 
           {/* Connect Wallet Button */}
           <div className="hidden md:flex items-center gap-4">
-            <Button className="bg-primary/20 border border-primary/50 text-primary hover:bg-primary/30 hover:border-primary transition-all duration-300 neon-glow-cyan">
+            <Button 
+              onClick={() => open()}
+              className="bg-primary/20 border border-primary/50 text-primary hover:bg-primary/30 hover:border-primary transition-all duration-300 neon-glow-cyan"
+            >
               <Wallet className="w-4 h-4 mr-2" />
-              Connect Wallet
+              {isConnected ? truncateAddress(address || '') : 'Connect Wallet'}
             </Button>
           </div>
 
@@ -65,9 +75,12 @@ export default function Navigation() {
                 {item}
               </a>
             ))}
-            <Button className="w-full bg-primary/20 border border-primary/50 text-primary mt-4">
+            <Button 
+              onClick={() => open()}
+              className="w-full bg-primary/20 border border-primary/50 text-primary mt-4"
+            >
               <Wallet className="w-4 h-4 mr-2" />
-              Connect Wallet
+              {isConnected ? truncateAddress(address || '') : 'Connect Wallet'}
             </Button>
           </div>
         </div>
