@@ -68,7 +68,7 @@ export default function HeroSection() {
             variant="outline"
             className="border-secondary/50 text-secondary hover:bg-secondary/10 px-8 py-6 text-lg font-semibold bg-transparent"
           >
-            View Demo
+            View
           </Button>
         </div>
 

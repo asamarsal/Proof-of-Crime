@@ -1,12 +1,13 @@
-// app/layout.tsx
 import type React from "react"
 import type { Metadata } from "next"
-import { Inter } from "next/font/google"
+import { Inter, JetBrains_Mono } from "next/font/google"
 import { Analytics } from "@vercel/analytics/next"
 import "./globals.css"
-import { Providers } from "./providers"
+import ContextProvider from '@/context'
+import { headers } from "next/headers"
 
-const inter = Inter({ subsets: ["latin"] })
+const _inter = Inter({ subsets: ["latin"] })
+const _jetbrainsMono = JetBrains_Mono({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
   title: "Proof of Crime | AI-Powered Cybercrime Investigation",
@@ -32,17 +33,19 @@ export const metadata: Metadata = {
   },
 }
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode
 }>) {
+  const cookies = (await headers()).get('cookie')
+
   return (
     <html lang="en" className="dark">
-      <body className={`font-sans antialiased overflow-x-hidden ${inter.className}`}>
-        <Providers>
+      <body className={`font-sans antialiased overflow-x-hidden`}>
+        <ContextProvider cookies={cookies}>
           {children}
-        </Providers>
+        </ContextProvider>
         <Analytics />
       </body>
     </html>
