@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useRef } from "react"
+import Link from "next/link"
 import { ArrowRight, Shield, Zap, Lock } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import NeonWaves from "@/components/neon-waves"
@@ -56,13 +57,15 @@ export default function HeroSection() {
 
         {/* CTA Buttons */}
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-16">
-          <Button
-            size="lg"
-            className="bg-primary text-primary-foreground hover:bg-primary/90 px-8 py-6 text-lg font-semibold transition-all duration-300 neon-glow-cyan group"
-          >
-            Launch App
-            <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
-          </Button>
+          <Link href="/dashboard">
+            <Button
+              size="lg"
+              className="bg-primary text-primary-foreground hover:bg-primary/90 hover:scale-110 px-8 py-6 text-lg font-semibold transition-all duration-300 neon-glow-cyan group"
+            >
+              Launch App
+              <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
+            </Button>
+          </Link>
           <Button
             size="lg"
             variant="outline"

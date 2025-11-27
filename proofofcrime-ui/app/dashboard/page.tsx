@@ -167,51 +167,131 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-12">
-          <Card className="glass border-primary/20">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between mb-2">
-                <div className="text-sm font-medium text-muted-foreground">Total Cases</div>
-                <TrendingUp className="w-4 h-4 text-primary" />
-              </div>
-              <div className="text-3xl font-bold text-primary">1,248</div>
-              <p className="text-xs text-muted-foreground mt-1">+12% from last month</p>
-            </CardContent>
-          </Card>
+        {/* Stats Cards - Horizontal Scroll */}
+        <div className="mb-12">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-xl font-bold">Now trending</h2>
+            <div className="flex gap-2">
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="h-8 w-8 rounded-full bg-muted/50 hover:bg-muted"
+                onClick={() => {
+                  const container = document.getElementById('stats-scroll');
+                  if (container) container.scrollBy({ left: -300, behavior: 'smooth' });
+                }}
+              >
+                <span className="text-lg">‹</span>
+              </Button>
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="h-8 w-8 rounded-full bg-muted/50 hover:bg-muted"
+                onClick={() => {
+                  const container = document.getElementById('stats-scroll');
+                  if (container) container.scrollBy({ left: 300, behavior: 'smooth' });
+                }}
+              >
+                <span className="text-lg">›</span>
+              </Button>
+            </div>
+          </div>
           
-          <Card className="glass border-secondary/20">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between mb-2">
-                <div className="text-sm font-medium text-muted-foreground">Total Volume</div>
-                <DollarSign className="w-4 h-4 text-secondary" />
-              </div>
-              <div className="text-3xl font-bold text-secondary">$42.5M</div>
-              <p className="text-xs text-muted-foreground mt-1">Suspected illicit funds</p>
-            </CardContent>
-          </Card>
-          
-          <Card className="glass border-orange-500/20">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between mb-2">
-                <div className="text-sm font-medium text-muted-foreground">Active Alerts</div>
-                <AlertCircle className="w-4 h-4 text-orange-500" />
-              </div>
-              <div className="text-3xl font-bold text-orange-500">342</div>
-              <p className="text-xs text-muted-foreground mt-1">Requires attention</p>
-            </CardContent>
-          </Card>
-          
-          <Card className="glass border-green-500/20">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between mb-2">
-                <div className="text-sm font-medium text-muted-foreground">Wallets Tracked</div>
-                <Users className="w-4 h-4 text-green-500" />
-              </div>
-              <div className="text-3xl font-bold text-green-500">125k</div>
-              <p className="text-xs text-muted-foreground mt-1">Across all chains</p>
-            </CardContent>
-          </Card>
+          <div 
+            id="stats-scroll"
+            className="flex gap-4 overflow-x-auto scrollbar-hide scroll-smooth pb-4"
+            style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+          >
+            <Card className="glass border-primary/20 flex-shrink-0 w-[280px] hover:border-primary/40 transition-all cursor-pointer">
+              <CardContent className="p-6">
+                <div className="flex items-start gap-4 mb-3">
+                  <div className="w-12 h-12 rounded-lg bg-primary/20 flex items-center justify-center flex-shrink-0">
+                    <TrendingUp className="w-6 h-6 text-primary" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="text-sm font-bold truncate">Total Cases</div>
+                    <div className="text-xs text-green-500">market cap: $43.3M</div>
+                    <div className="text-xs text-muted-foreground">replies: 1393</div>
+                  </div>
+                </div>
+                <p className="text-sm text-muted-foreground line-clamp-2">
+                  Cases Rally to $29M All-Time High
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card className="glass border-secondary/20 flex-shrink-0 w-[280px] hover:border-secondary/40 transition-all cursor-pointer">
+              <CardContent className="p-6">
+                <div className="flex items-start gap-4 mb-3">
+                  <div className="w-12 h-12 rounded-lg bg-secondary/20 flex items-center justify-center flex-shrink-0">
+                    <DollarSign className="w-6 h-6 text-secondary" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="text-sm font-bold truncate">Total Volume (ILLICIT)</div>
+                    <div className="text-xs text-green-500">market cap: $1.8M</div>
+                    <div className="text-xs text-muted-foreground">replies: 699</div>
+                  </div>
+                </div>
+                <p className="text-sm text-muted-foreground line-clamp-2">
+                  Crypto Co-Creator Shows Support for Illicit Funds
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card className="glass border-orange-500/20 flex-shrink-0 w-[280px] hover:border-orange-500/40 transition-all cursor-pointer">
+              <CardContent className="p-6">
+                <div className="flex items-start gap-4 mb-3">
+                  <div className="w-12 h-12 rounded-lg bg-orange-500/20 flex items-center justify-center flex-shrink-0">
+                    <AlertCircle className="w-6 h-6 text-orange-500" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="text-sm font-bold truncate">You Own Nothing & Be... (NOTHING)</div>
+                    <div className="text-xs text-green-500">market cap: $3.2M</div>
+                    <div className="text-xs text-muted-foreground">replies: 557</div>
+                  </div>
+                </div>
+                <p className="text-sm text-muted-foreground line-clamp-2">
+                  You Own Nothing, But Still Bought a Meme Coin
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card className="glass border-green-500/20 flex-shrink-0 w-[280px] hover:border-green-500/40 transition-all cursor-pointer">
+              <CardContent className="p-6">
+                <div className="flex items-start gap-4 mb-3">
+                  <div className="w-12 h-12 rounded-lg bg-green-500/20 flex items-center justify-center flex-shrink-0">
+                    <Users className="w-6 h-6 text-green-500" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="text-sm font-bold truncate">The Official 67 Coin (67)</div>
+                    <div className="text-xs text-green-500">market cap: $20.3M</div>
+                    <div className="text-xs text-muted-foreground">replies: 1127</div>
+                  </div>
+                </div>
+                <p className="text-sm text-muted-foreground line-clamp-2">
+                  67 Re-Emerges as the Internet Dubs it the Trend of the Year
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card className="glass border-primary/20 flex-shrink-0 w-[280px] hover:border-primary/40 transition-all cursor-pointer">
+              <CardContent className="p-6">
+                <div className="flex items-start gap-4 mb-3">
+                  <div className="w-12 h-12 rounded-lg bg-primary/20 flex items-center justify-center flex-shrink-0">
+                    <Shield className="w-6 h-6 text-primary" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="text-sm font-bold truncate">Wallets Tracked</div>
+                    <div className="text-xs text-green-500">market cap: $125M</div>
+                    <div className="text-xs text-muted-foreground">replies: 2341</div>
+                  </div>
+                </div>
+                <p className="text-sm text-muted-foreground line-clamp-2">
+                  Tracking 125k Wallets Across All Chains
+                </p>
+              </CardContent>
+            </Card>
+          </div>
         </div>
 
         {/* Main Content Grid */}

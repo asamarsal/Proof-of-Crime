@@ -6,6 +6,7 @@ import PoliceLights from "@/components/police-lights"
 import ScanLine from "@/components/scan-line"
 import GlitchEffect from "@/components/glitch-effect"
 import NeonWaves from "@/components/neon-waves"
+import Footer from "@/components/footer"
 
 export default function Home() {
   return (
@@ -22,6 +23,7 @@ export default function Home() {
         <Navigation />
         <HeroSection />
         <BentoGrid />
+        <Footer />
       </div>
     </main>
   )
