@@ -10,10 +10,10 @@ const _inter = Inter({ subsets: ["latin"] })
 const _jetbrainsMono = JetBrains_Mono({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: "Proof of Crime | AI-Powered Cybercrime Investigation",
+  title: "Proof of Crime",
   description:
     "The next-generation Web3 dApp for decentralized cybercrime investigation. Track suspects, claim bounties, and analyze blockchain forensics with AI.",
-  generator: "v0.app",
+  generator: "Mind",
   icons: {
     icon: [
       {
