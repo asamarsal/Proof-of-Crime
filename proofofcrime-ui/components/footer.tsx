@@ -10,7 +10,7 @@ export default function Footer() {
         <div className="flex justify-center mb-8">
           <Link href="/">
             <Image 
-              src="/logopoc3.png" 
+              src="/logopoc4.png" 
               alt="Proof of Crime Logo" 
               height={40} 
               width={120} 

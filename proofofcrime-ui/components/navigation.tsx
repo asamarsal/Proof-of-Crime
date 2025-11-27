@@ -27,7 +27,7 @@ export default function Navigation() {
           <div className="flex items-center ml-2">
             <Link href="/">
               <Image 
-                src="/logopoc3.png" 
+                src="/logopoc4.png" 
                 alt="Logo" 
                 height={40} 
                 width={140} 
@@ -39,17 +39,17 @@ export default function Navigation() {
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center gap-8">
-            <Link href="/dashboard" className={`text-sm transition-colors duration-300 ${pathname === '/dashboard' ? 'text-primary neon-text-cyan font-medium' : 'text-muted-foreground hover:text-primary'}`}>
+            <Link href="/dashboard" className={`text-sm transition-colors duration-300 ${pathname === '/dashboard' ? 'text-primary neon-text-cyan font-medium' : 'text-white hover:text-primary'}`}>
               Dashboard
             </Link>
 
-            <Link href="/cases" className={`text-sm transition-colors duration-300 ${pathname === '/cases' ? 'text-primary neon-text-cyan font-medium' : 'text-muted-foreground hover:text-primary'}`}>
+            <Link href="/cases" className={`text-sm transition-colors duration-300 ${pathname === '/cases' ? 'text-primary neon-text-cyan font-medium' : 'text-white hover:text-primary'}`}>
               Cases
             </Link>
 
             {/* Desktop Dropdown */}
             <DropdownMenu>
-              <DropdownMenuTrigger className={`flex items-center gap-1 text-sm transition-colors duration-300 outline-none ${pathname?.startsWith('/smart-contract-audit') || pathname?.startsWith('/web3-website-hacking') || pathname?.startsWith('/people-bounty') ? 'text-primary neon-text-cyan font-medium' : 'text-muted-foreground hover:text-primary'}`}>
+              <DropdownMenuTrigger className={`flex items-center gap-1 text-sm transition-colors duration-300 outline-none ${pathname?.startsWith('/smart-contract-audit') || pathname?.startsWith('/web3-website-hacking') || pathname?.startsWith('/people-bounty') ? 'text-primary neon-text-cyan font-medium' : 'text-white hover:text-primary'}`}>
                 Bounties <ChevronDown className="w-4 h-4" />
               </DropdownMenuTrigger>
               <DropdownMenuContent className="w-64 bg-background/95 backdrop-blur-md border-border">
@@ -85,11 +85,11 @@ export default function Navigation() {
               </DropdownMenuContent>
             </DropdownMenu>
 
-            <Link href="/analytics" className={`text-sm transition-colors duration-300 ${pathname === '/analytics' ? 'text-primary neon-text-cyan font-medium' : 'text-muted-foreground hover:text-primary'}`}>
+            <Link href="/analytics" className={`text-sm transition-colors duration-300 ${pathname === '/analytics' ? 'text-primary neon-text-cyan font-medium' : 'text-white hover:text-primary'}`}>
               Analytics
             </Link>
 
-            <Link href="/docs" className={`text-sm transition-colors duration-300 ${pathname === '/docs' ? 'text-primary neon-text-cyan font-medium' : 'text-muted-foreground hover:text-primary'}`}>
+            <Link href="/docs" className={`text-sm transition-colors duration-300 ${pathname === '/docs' ? 'text-primary neon-text-cyan font-medium' : 'text-white hover:text-primary'}`}>
               Docs
             </Link>
           </div>

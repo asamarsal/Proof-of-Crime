@@ -130,7 +130,7 @@ export default function DashboardPage() {
         {/* Hero Section */}
         <div className="text-center mb-12">
           <h1 className="text-5xl md:text-6xl font-bold tracking-tight mb-6">
-            Track Web3's <span className="text-primary neon-text-cyan">Dark Side</span>
+            Track Web3 <span className="text-primary neon-text-cyan">Dark Side</span>
           </h1>
           <p className="text-xl text-muted-foreground mb-8 max-w-3xl mx-auto">
             Uncover criminal activities across blockchains. Monitor pump & dump schemes, rugpulls, NFT scams, money laundering, and terrorism financing in real-time.
