@@ -84,6 +84,26 @@
   --whiteclear: oklch(100% 0.00011 271.152);
 }
 
+@keyframes waveMove {
+  0% {
+    transform: translateX(0);
+  }
+
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-seamless-wave-slow {
+  animation: waveMove 20s linear infinite;
+}
+
+.animate-seamless-wave-fast {
+  animation: waveMove 10s linear infinite;
+}
+
+
+
 @theme inline {
   --font-sans: "Inter", "Inter Fallback", system-ui, sans-serif;
   --font-mono: "JetBrains Mono", "Geist Mono", monospace;

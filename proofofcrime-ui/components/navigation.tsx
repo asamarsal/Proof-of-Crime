@@ -29,7 +29,7 @@ export default function Navigation() {
               <Image 
                 src="/logopoc3.png" 
                 alt="Logo" 
-                height={50} 
+                height={40} 
                 width={140} 
                 className="cursor-pointer"
               />
@@ -54,30 +54,30 @@ export default function Navigation() {
               </DropdownMenuTrigger>
               <DropdownMenuContent className="w-64 bg-background/95 backdrop-blur-md border-border">
                 <DropdownMenuItem asChild>
-                  <Link href="/smart-contract-audit" className="flex items-start p-3 focus:bg-primary/10 cursor-pointer">
-                    <FileCode className="w-5 h-5 mr-3 text-primary mt-0.5" />
+                  <Link href="/smart-contract-audit" className="flex items-start p-3 focus:bg-primary/10 cursor-pointer group">
+                    <FileCode className="w-5 h-5 mr-3 text-secondary mt-0.5 transition-colors" />
                     <div className="flex flex-col">
-                      <span className="font-medium text-primary">Smart Contract Audit</span>
+                      <span className="font-medium text-white group-hover:text-primary group-hover:neon-text-cyan transition-colors">Smart Contract Audit</span>
                       <span className="text-xs text-muted-foreground mt-1">Find vulnerabilities in smart contracts</span>
                     </div>
                   </Link>
                 </DropdownMenuItem>
 
                 <DropdownMenuItem asChild>
-                  <Link href="/web3-website-hacking" className="flex items-start p-3 focus:bg-primary/10 cursor-pointer">
-                    <Globe className="w-5 h-5 mr-3 text-primary mt-0.5" />
+                  <Link href="/web3-website-hacking" className="flex items-start p-3 focus:bg-primary/10 cursor-pointer group">
+                    <Globe className="w-5 h-5 mr-3 text-secondary mt-0.5 transition-colors" />
                     <div className="flex flex-col">
-                      <span className="font-medium text-primary">Web3 Website Hacking</span>
+                      <span className="font-medium text-white group-hover:text-primary group-hover:neon-text-cyan transition-colors">Web3 Website Hacking</span>
                       <span className="text-xs text-muted-foreground mt-1">Discover security flaws in Web3 platforms</span>
                     </div>
                   </Link>
                 </DropdownMenuItem>
 
                 <DropdownMenuItem asChild>
-                  <Link href="/people-bounty" className="flex items-start p-3 focus:bg-primary/10 cursor-pointer">
-                    <Users className="w-5 h-5 mr-3 text-primary mt-0.5" />
+                  <Link href="/people-bounty" className="flex items-start p-3 focus:bg-primary/10 cursor-pointer group">
+                    <Users className="w-5 h-5 mr-3 text-secondary mt-0.5 transition-colors" />
                     <div className="flex flex-col">
-                      <span className="font-medium text-primary">People/Suspected Name Bounty</span>
+                      <span className="font-medium text-white group-hover:text-primary group-hover:neon-text-cyan transition-colors">People/Suspected Name Bounty</span>
                       <span className="text-xs text-muted-foreground mt-1">Report criminals and submit evidence</span>
                     </div>
                   </Link>

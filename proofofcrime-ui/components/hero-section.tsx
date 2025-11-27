@@ -66,13 +66,19 @@ export default function HeroSection() {
               <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
             </Button>
           </Link>
-          <Button
-            size="lg"
-            variant="outline"
-            className="border-secondary/50 text-secondary hover:bg-secondary/10 px-8 py-6 text-lg font-semibold bg-transparent"
-          >
-            View
-          </Button>
+          <Link
+            href="#"
+            className="
+              text-secondary
+              font-semibold
+              text-lg
+              transition-transform
+                duration-300
+                hover:scale-110"
+            >
+              View
+          </Link>
+
         </div>
 
         {/* Stats */}

@@ -4,7 +4,7 @@ import { Twitter, Linkedin, Facebook, Instagram, Music } from "lucide-react"
 
 export default function Footer() {
   return (
-    <footer className="border-t border-border/50 bg-background/95 backdrop-blur-md mt-auto">
+    <footer className="border-t border-border/50 mt-auto">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         {/* Logo */}
         <div className="flex justify-center mb-8">
@@ -21,22 +21,22 @@ export default function Footer() {
 
         {/* Navigation Links */}
         <div className="flex flex-wrap justify-center gap-6 mb-8">
-          <Link href="/features" className="text-sm text-muted-foreground hover:text-primary transition-colors">
+          <Link href="/features" className="text-sm text-white hover:text-primary transition-colors">
             Features
           </Link>
-          <Link href="/solution" className="text-sm text-muted-foreground hover:text-primary transition-colors">
+          <Link href="/solution" className="text-sm text-white hover:text-primary transition-colors">
             Solution
           </Link>
-          <Link href="/cases" className="text-sm text-muted-foreground hover:text-primary transition-colors">
+          <Link href="/cases" className="text-sm text-white hover:text-primary transition-colors">
             Cases
           </Link>
-          <Link href="/analytics" className="text-sm text-muted-foreground hover:text-primary transition-colors">
+          <Link href="/analytics" className="text-sm text-white hover:text-primary transition-colors">
             Pricing
           </Link>
-          <Link href="/docs" className="text-sm text-muted-foreground hover:text-primary transition-colors">
+          <Link href="/docs" className="text-sm text-white hover:text-primary transition-colors">
             Help
           </Link>
-          <Link href="/about" className="text-sm text-muted-foreground hover:text-primary transition-colors">
+          <Link href="/about" className="text-sm text-white hover:text-primary transition-colors">
             About
           </Link>
         </div>
@@ -47,7 +47,7 @@ export default function Footer() {
             href="https://twitter.com" 
             target="_blank" 
             rel="noopener noreferrer"
-            className="text-muted-foreground hover:text-primary transition-colors"
+            className="text-white hover:text-primary transition-colors"
             aria-label="Twitter"
           >
             <Twitter className="w-5 h-5" />
@@ -56,7 +56,7 @@ export default function Footer() {
             href="https://linkedin.com" 
             target="_blank" 
             rel="noopener noreferrer"
-            className="text-muted-foreground hover:text-primary transition-colors"
+            className="text-white hover:text-primary transition-colors"
             aria-label="LinkedIn"
           >
             <Linkedin className="w-5 h-5" />
@@ -65,7 +65,7 @@ export default function Footer() {
             href="https://facebook.com" 
             target="_blank" 
             rel="noopener noreferrer"
-            className="text-muted-foreground hover:text-primary transition-colors"
+            className="text-white hover:text-primary transition-colors"
             aria-label="Facebook"
           >
             <Facebook className="w-5 h-5" />
@@ -74,7 +74,7 @@ export default function Footer() {
             href="https://threads.net" 
             target="_blank" 
             rel="noopener noreferrer"
-            className="text-muted-foreground hover:text-primary transition-colors"
+            className="text-white hover:text-primary transition-colors"
             aria-label="Threads"
           >
             <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
@@ -85,7 +85,7 @@ export default function Footer() {
             href="https://instagram.com" 
             target="_blank" 
             rel="noopener noreferrer"
-            className="text-muted-foreground hover:text-primary transition-colors"
+            className="text-white hover:text-primary transition-colors"
             aria-label="Instagram"
           >
             <Instagram className="w-5 h-5" />
@@ -94,7 +94,7 @@ export default function Footer() {
             href="https://tiktok.com" 
             target="_blank" 
             rel="noopener noreferrer"
-            className="text-muted-foreground hover:text-primary transition-colors"
+            className="text-white hover:text-primary transition-colors"
             aria-label="TikTok"
           >
             <Music className="w-5 h-5" />
@@ -103,7 +103,7 @@ export default function Footer() {
 
         {/* Copyright */}
         <div className="text-center">
-          <p className="text-sm text-muted-foreground">
+          <p className="text-sm text-white">
             © {new Date().getFullYear()} Proof of Crime. All rights reserved
           </p>
         </div>
