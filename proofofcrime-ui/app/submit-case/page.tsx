@@ -8,14 +8,100 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { AlertCircle, Upload, Shield, FileText } from "lucide-react"
+import { AlertCircle, Upload, Shield, FileText, Sparkles, Coins } from "lucide-react"
+import { ethers } from "ethers"
 
 export default function SubmitCasePage() {
   const [files, setFiles] = useState<File[]>([])
+  const [caseTitle, setCaseTitle] = useState("")
+  const [crimeType, setCrimeType] = useState("")
+  const [blockchain, setBlockchain] = useState("")
+  const [suspectWallet, setSuspectWallet] = useState("")
+  const [contractAddress, setContractAddress] = useState("")
+  const [estimatedLoss, setEstimatedLoss] = useState("")
+  const [numVictims, setNumVictims] = useState("")
+  const [description, setDescription] = useState("")
+  const [transactionHashes, setTransactionHashes] = useState("")
+  const [yourName, setYourName] = useState("")
+  const [email, setEmail] = useState("")
+  const [confirmed, setConfirmed] = useState(false)
+  const [isClaimingFaucet, setIsClaimingFaucet] = useState(false)
+
+  const USDCRIME_CONTRACT_ADDRESS = "0x7898de8bB562B6e31C7A10FA3AE84AB036B1e9Cd"
+  const USDCRIME_ABI = [
+    "function claimFaucet() external returns (bool)",
+    "function balanceOf(address account) external view returns (uint256)",
+    "function name() external view returns (string)",
+    "function symbol() external view returns (string)"
+  ]
+
+  const handleClaimFaucet = async () => {
+    try {
+      setIsClaimingFaucet(true)
+      
+      if (typeof window.ethereum === 'undefined') {
+        alert('Please install MetaMask or another Web3 wallet!')
+        return
+      }
+
+      const provider = new ethers.BrowserProvider(window.ethereum as any)
+      await provider.send("eth_requestAccounts", [])
+      const signer = await provider.getSigner()
+      
+      const contract = new ethers.Contract(
+        USDCRIME_CONTRACT_ADDRESS,
+        USDCRIME_ABI,
+        signer
+      )
+
+      const tx = await contract.claimFaucet()
+      await tx.wait()
+      
+      alert('Successfully claimed 1000 USDCRIME tokens!')
+    } catch (error: any) {
+      console.error('Faucet claim error:', error)
+      if (error.code === 'ACTION_REJECTED') {
+        alert('Transaction rejected by user')
+      } else if (error.message?.includes('faucet empty')) {
+        alert('Faucet is empty. Maximum supply reached.')
+      } else {
+        alert('Failed to claim faucet: ' + (error.message || 'Unknown error'))
+      }
+    } finally {
+      setIsClaimingFaucet(false)
+    }
+  }
+
+  const handleAutoFill = () => {
+    setCaseTitle("SafeMoon V2 Rugpull Investigation")
+    setCrimeType("rugpull")
+    setBlockchain("bsc")
+    setSuspectWallet("0x8076C74C5e3F5852037F31Ff0093Eeb8c8ADd8D3")
+    setContractAddress("0x42981d0bfbAf196529376EE702F2a9Eb9092fcB5")
+    setEstimatedLoss("1200000")
+    setNumVictims("8300")
+    setDescription("SafeMoon V2 token experienced a coordinated pump and dump scheme. The developers created artificial hype through social media campaigns, causing the token price to surge 300% in 48 hours. Shortly after reaching peak price, the team executed a massive sell-off, draining liquidity pools and leaving retail investors with worthless tokens. Evidence shows coordinated wallet movements and suspicious transaction patterns indicating premeditated fraud.")
+    setTransactionHashes("0x1a2b3c4d5e6f7g8h9i0j1k2l3m4n5o6p7q8r9s0t1u2v3w4x5y6z\n0x9z8y7x6w5v4u3t2s1r0q9p8o7n6m5l4k3j2i1h0g9f8e7d6c5b4a")
+    setYourName("Anonymous Investigator")
+    setEmail("investigator@proofofcrime.com")
+    setConfirmed(true)
+  }
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
+    <div className="min-h-screen bg-background text-foreground relative">
       <Navigation />
+      
+      {/* Floating Claim Faucet Button */}
+      <div className="fixed top-24 right-6 z-40">
+        <button
+          onClick={handleClaimFaucet}
+          disabled={isClaimingFaucet}
+          className="px-5 py-3 rounded-lg bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white font-bold text-sm transition-all duration-300 flex items-center gap-2 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed neon-glow-green"
+        >
+          <Coins className="w-5 h-5" />
+          {isClaimingFaucet ? 'Claiming...' : 'Claim Faucet'}
+        </button>
+      </div>
       
       <main className="pt-24 pb-12 px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto">
         
@@ -53,10 +139,21 @@ export default function SubmitCasePage() {
         {/* Form */}
         <Card className="glass border-border/50">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <FileText className="w-5 h-5 text-primary" />
-              Case Information
-            </CardTitle>
+            <div className="flex items-center justify-between">
+              <CardTitle className="flex items-center gap-2">
+                <FileText className="w-5 h-5 text-primary" />
+                Case Information
+              </CardTitle>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleAutoFill}
+                className="border-primary/30 hover:bg-primary/10"
+              >
+                <Sparkles className="w-4 h-4 mr-2" />
+                Auto Fill Demo
+              </Button>
+            </div>
           </CardHeader>
           <CardContent className="space-y-6">
             
@@ -66,6 +163,8 @@ export default function SubmitCasePage() {
                 Case Title <span className="text-red-500">*</span>
               </label>
               <Input 
+                value={caseTitle}
+                onChange={(e) => setCaseTitle(e.target.value)}
                 placeholder="e.g., Rugpull on XYZ Token"
                 className="bg-background/50 border-primary/20 focus:border-primary/50"
               />
@@ -76,7 +175,7 @@ export default function SubmitCasePage() {
               <label className="text-sm font-medium mb-2 block">
                 Crime Type <span className="text-red-500">*</span>
               </label>
-              <Select>
+              <Select value={crimeType} onValueChange={setCrimeType}>
                 <SelectTrigger className="bg-background/50 border-primary/20">
                   <SelectValue placeholder="Select crime type" />
                 </SelectTrigger>
@@ -99,7 +198,7 @@ export default function SubmitCasePage() {
               <label className="text-sm font-medium mb-2 block">
                 Blockchain <span className="text-red-500">*</span>
               </label>
-              <Select>
+              <Select value={blockchain} onValueChange={setBlockchain}>
                 <SelectTrigger className="bg-background/50 border-primary/20">
                   <SelectValue placeholder="Select blockchain" />
                 </SelectTrigger>
@@ -124,6 +223,8 @@ export default function SubmitCasePage() {
                   Suspect Wallet Address
                 </label>
                 <Input 
+                  value={suspectWallet}
+                  onChange={(e) => setSuspectWallet(e.target.value)}
                   placeholder="0x..."
                   className="bg-background/50 border-primary/20 focus:border-primary/50"
                 />
@@ -133,6 +234,8 @@ export default function SubmitCasePage() {
                   Contract Address (if applicable)
                 </label>
                 <Input 
+                  value={contractAddress}
+                  onChange={(e) => setContractAddress(e.target.value)}
                   placeholder="0x..."
                   className="bg-background/50 border-primary/20 focus:border-primary/50"
                 />
@@ -147,6 +250,8 @@ export default function SubmitCasePage() {
                 </label>
                 <Input 
                   type="number"
+                  value={estimatedLoss}
+                  onChange={(e) => setEstimatedLoss(e.target.value)}
                   placeholder="e.g., 50000"
                   className="bg-background/50 border-primary/20 focus:border-primary/50"
                 />
@@ -157,6 +262,8 @@ export default function SubmitCasePage() {
                 </label>
                 <Input 
                   type="number"
+                  value={numVictims}
+                  onChange={(e) => setNumVictims(e.target.value)}
                   placeholder="e.g., 100"
                   className="bg-background/50 border-primary/20 focus:border-primary/50"
                 />
@@ -169,6 +276,8 @@ export default function SubmitCasePage() {
                 Detailed Description <span className="text-red-500">*</span>
               </label>
               <Textarea 
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
                 placeholder="Provide a detailed description of the crime, including timeline, how it happened, and any relevant information..."
                 className="min-h-[150px] bg-background/50 border-primary/20 focus:border-primary/50"
               />
@@ -180,6 +289,8 @@ export default function SubmitCasePage() {
                 Transaction Hash(es)
               </label>
               <Textarea 
+                value={transactionHashes}
+                onChange={(e) => setTransactionHashes(e.target.value)}
                 placeholder="Enter transaction hashes (one per line)"
                 className="min-h-[80px] bg-background/50 border-primary/20 focus:border-primary/50"
               />
@@ -211,6 +322,8 @@ export default function SubmitCasePage() {
                     Your Name
                   </label>
                   <Input 
+                    value={yourName}
+                    onChange={(e) => setYourName(e.target.value)}
                     placeholder="Anonymous"
                     className="bg-background/50 border-primary/20 focus:border-primary/50"
                   />
@@ -221,6 +334,8 @@ export default function SubmitCasePage() {
                   </label>
                   <Input 
                     type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
                     placeholder="your@email.com"
                     className="bg-background/50 border-primary/20 focus:border-primary/50"
                   />
@@ -237,6 +352,8 @@ export default function SubmitCasePage() {
               <input 
                 type="checkbox" 
                 id="confirm-accuracy"
+                checked={confirmed}
+                onChange={(e) => setConfirmed(e.target.checked)}
                 className="mt-1 w-4 h-4 accent-primary cursor-pointer"
               />
               <label htmlFor="confirm-accuracy" className="text-sm text-muted-foreground cursor-pointer">
