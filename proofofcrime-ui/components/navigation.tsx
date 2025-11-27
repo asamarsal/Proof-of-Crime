@@ -89,8 +89,8 @@ export default function Navigation() {
               Analytics
             </Link>
 
-            <Link href="/docs" className={`text-sm transition-colors duration-300 ${pathname === '/docs' ? 'text-primary neon-text-cyan font-medium' : 'text-white hover:text-primary'}`}>
-              Docs
+            <Link href="/submit-case" className={`text-sm transition-colors duration-300 ${pathname === '/docs' ? 'text-primary neon-text-cyan font-medium' : 'text-white hover:text-primary'}`}>
+              Submit Case
             </Link>
           </div>
 

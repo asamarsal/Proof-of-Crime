@@ -46,7 +46,7 @@ export default function HeroSection() {
         {/* Main Heading */}
         <h1 className="text-4xl sm:text-6xl lg:text-7xl font-bold leading-tight mb-6">
           <span className="block text-foreground">Join decentralized fight</span>
-          <span className="block text-primary neon-text-cyan">against global</span>
+          <span className="block text-primary neon-text-cyan" data-text="against global">against global</span>
           <span className="block text-foreground">web3 crime.</span>
         </h1>
 
