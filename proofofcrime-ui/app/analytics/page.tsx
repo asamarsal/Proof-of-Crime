@@ -88,31 +88,79 @@ export default function AnalyticsPage() {
     setInput("")
     setIsTyping(true)
 
-    // Simulate ElizaOS processing delay
-    setTimeout(() => {
-      let responseText = ""
-      const lowerInput = userMsg.content.toLowerCase()
+    // Simulate ElizaOS processing delay or call real API
+    try {
+      // NOTE: To use the real ElizaOS API:
+      // 1. Run your ElizaOS server (default: http://localhost:3000)
+      // 2. Ensure the agent is running with the character ID
+      // 3. Update the API_URL below
+      
+      const USE_REAL_API = false // Set to true to use real backend
+      const API_URL = "http://localhost:3000/00000000-0000-0000-0000-000000000000/message" // Replace UUID with your Agent ID
 
-      if (lowerInput.includes("scan") || lowerInput.includes("analyze")) {
-        responseText = "Scanning target contract... \n\nAnalysis Complete:\n- Liquidity: $45,200 (Locked)\n- Mint Authority: Disabled\n- Freeze Authority: Disabled\n- Top 10 Holders: 12%\n\nRisk Score: LOW (Safe to ape)"
-      } else if (lowerInput.includes("rug") || lowerInput.includes("scam")) {
-        responseText = "ALERT: Detected suspicious pattern in recent deployment 0x7f...3a21. Liquidity removed 30 seconds after launch. Marking as CONFIRMED RUGPULL."
-      } else if (lowerInput.includes("help")) {
-        responseText = "Available commands:\n/scan [address] - Analyze token security\n/monitor - Start real-time mempool monitoring\n/snipe [address] [amount] - Execute snipe trade\n/status - System status report"
+      if (USE_REAL_API) {
+        const response = await fetch(API_URL, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            text: input,
+            userId: "user1",
+            userName: "User",
+          }),
+        })
+
+        if (!response.ok) throw new Error("API request failed")
+
+        const data = await response.json()
+        // ElizaOS returns an array of messages
+        const botResponses = data.map((msg: any, idx: number) => ({
+          id: (Date.now() + idx).toString(),
+          role: "assistant",
+          content: msg.text,
+          timestamp: new Date()
+        }))
+
+        setMessages(prev => [...prev, ...botResponses])
       } else {
-        responseText = "Command received. Processing request on-chain... \n(Note: This is a simulation. To connect to a real ElizaOS instance, configure the backend endpoint.)"
-      }
+        // Simulation Mode (Lisk Sepolia)
+        setTimeout(() => {
+          let responseText = ""
+          const lowerInput = userMsg.content.toLowerCase()
 
-      const botMsg: Message = {
+          if (lowerInput.includes("scan") || lowerInput.includes("analyze")) {
+            responseText = "Scanning target contract on Lisk Sepolia... \n\nAnalysis Complete:\n- Liquidity: 5,200 LSK (Locked)\n- Mint Authority: Disabled\n- Freeze Authority: Disabled\n- Top 10 Holders: 12%\n\nRisk Score: LOW (Safe to ape)"
+          } else if (lowerInput.includes("rug") || lowerInput.includes("scam")) {
+            responseText = "ALERT: Detected suspicious pattern in recent Lisk deployment 0x7f...3a21. Liquidity removed 30 seconds after launch. Marking as CONFIRMED RUGPULL."
+          } else if (lowerInput.includes("help")) {
+            responseText = "Available Lisk Sepolia commands:\n/scan [address] - Analyze token security\n/monitor - Start real-time mempool monitoring\n/snipe [address] [amount] - Execute snipe trade\n/status - System status report"
+          } else {
+            responseText = "Command received. Processing request on Lisk Sepolia chain... \n(Note: Set USE_REAL_API = true in code to connect to actual ElizaOS backend)"
+          }
+
+          const botMsg: Message = {
+            id: (Date.now() + 1).toString(),
+            role: "assistant",
+            content: responseText,
+            timestamp: new Date()
+          }
+
+          setMessages(prev => [...prev, botMsg])
+        }, 1500)
+      }
+    } catch (error) {
+      console.error("Error sending message:", error)
+      const errorMsg: Message = {
         id: (Date.now() + 1).toString(),
-        role: "assistant",
-        content: responseText,
+        role: "system",
+        content: "Error: Failed to connect to ElizaOS agent. Please check if the server is running.",
         timestamp: new Date()
       }
-
-      setMessages(prev => [...prev, botMsg])
-      setIsTyping(false)
-    }, 1500)
+      setMessages(prev => [...prev, errorMsg])
+    }
+    
+    setIsTyping(false)
   }
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
