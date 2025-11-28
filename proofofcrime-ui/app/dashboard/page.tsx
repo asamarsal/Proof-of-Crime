@@ -233,7 +233,7 @@ export default function DashboardPage() {
               <Button variant="link" className="text-primary">View All →</Button>
             </div>
             
-            <div className="space-y-4 px-6">
+            <div className="space-y-4 mx-6">
               {trendingCases.map((item: typeof trendingCases[number]) => (
                 <Link key={item.id} href={`/case/${item.id}`}>
                   <Card className="glass border-border/50 hover:border-primary/30 transition-all duration-300 group cursor-pointer gap-6">
