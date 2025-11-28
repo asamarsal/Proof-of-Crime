@@ -107,8 +107,18 @@ export default function Web3WebsiteHackingPage() {
         <Tabs defaultValue="active" className="w-full">
           <div className="flex justify-center mb-8">
             <TabsList className="grid w-full max-w-md grid-cols-2 glass">
-              <TabsTrigger value="active">Active Bounties</TabsTrigger>
-              <TabsTrigger value="completed">Completed</TabsTrigger>
+              <TabsTrigger 
+                value="active"
+                className="data-[state=active]:text-primary data-[state=active]:neon-text-cyan"
+              >
+                Active Bounties
+              </TabsTrigger>
+              <TabsTrigger 
+                value="completed"
+                className="data-[state=active]:text-primary data-[state=active]:neon-text-cyan"
+              >
+                Completed
+              </TabsTrigger>
             </TabsList>
           </div>
 
@@ -120,9 +130,6 @@ export default function Web3WebsiteHackingPage() {
                     <div className="flex justify-between items-start mb-2">
                       <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20">
                         {bounty.company}
-                      </Badge>
-                      <Badge variant="destructive" className="bg-red-500/10 text-red-500 border-red-500/20">
-                        {bounty.severity}
                       </Badge>
                     </div>
                     <CardTitle className="text-xl group-hover:text-primary transition-colors">
