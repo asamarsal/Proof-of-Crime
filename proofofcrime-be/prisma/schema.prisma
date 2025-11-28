@@ -8,7 +8,6 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
 }
 
 // ============================================
@@ -22,16 +21,16 @@ model User {
   name          String?
   role          UserRole @default(USER)
   reputation    Int      @default(0)
-  
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-  
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
   // Relations
-  submittedCases      Case[]              @relation("CaseSubmitter")
-  bountySubmissions   BountySubmission[]
-  bountyParticipants  BountyParticipant[]
-  comments            Comment[]
-  
+  submittedCases     Case[]              @relation("CaseSubmitter")
+  bountySubmissions  BountySubmission[]
+  bountyParticipants BountyParticipant[]
+  comments           Comment[]
+
   @@map("users")
 }
 
@@ -47,41 +46,63 @@ enum UserRole {
 // ============================================
 
 model Case {
-  id                String     @id @default(cuid())
+  id                String         @id @default(cuid())
   caseTitle         String
-  crimeType         CrimeType
-  blockchain        Blockchain
+  reportCategory    ReportCategory @default(PEOPLE_BOUNTY)
+  crimeType         CrimeType?
+  blockchain        Blockchain?
   suspectWallet     String?
   contractAddress   String?
-  estimatedLoss     Decimal?   @db.Decimal(20, 2)
+  estimatedLoss     Decimal?       @db.Decimal(20, 2)
   numVictims        Int?
-  description       String     @db.Text
-  transactionHashes String?    @db.Text
-  status            CaseStatus @default(PENDING)
-  
+  description       String         @db.Text
+  transactionHashes String?        @db.Text
+  status            CaseStatus     @default(PENDING)
+
+  // Smart Contract Audit specific fields
+  vulnerabilityType String?
+  severity          Severity?
+  contractSource    String?   @db.Text
+
+  // Web3 Website Hacking specific fields
+  websiteUrl         String?
+  dappUrl            String?
+  exploitType        String?
+  affectedComponents String? @db.Text
+
+  // People Bounty specific fields
+  suspectName String?
+
   // Submitter info
-  submitterId       String
-  submitter         User       @relation("CaseSubmitter", fields: [submitterId], references: [id])
-  submitterName     String?
-  submitterEmail    String?
-  
+  submitterId    String
+  submitter      User    @relation("CaseSubmitter", fields: [submitterId], references: [id])
+  submitterName  String?
+  submitterEmail String?
+
   // Metadata
-  isAnonymous       Boolean    @default(false)
-  verifiedAt        DateTime?
-  verifiedBy        String?
-  
-  createdAt         DateTime   @default(now())
-  updatedAt         DateTime   @updatedAt
-  
+  isAnonymous Boolean   @default(false)
+  verifiedAt  DateTime?
+  verifiedBy  String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
   // Relations
-  evidence          Evidence[]
-  comments          Comment[]
-  
+  evidence Evidence[]
+  comments Comment[]
+
+  @@index([reportCategory])
   @@index([crimeType])
   @@index([blockchain])
   @@index([status])
   @@index([submitterId])
   @@map("cases")
+}
+
+enum ReportCategory {
+  SMART_CONTRACT_AUDIT
+  WEB3_WEBSITE_HACKING
+  PEOPLE_BOUNTY
 }
 
 enum CrimeType {
@@ -117,18 +138,18 @@ enum CaseStatus {
 }
 
 model Evidence {
-  id          String   @id @default(cuid())
-  caseId      String
-  case        Case     @relation(fields: [caseId], references: [id], onDelete: Cascade)
-  
+  id     String @id @default(cuid())
+  caseId String
+  case   Case   @relation(fields: [caseId], references: [id], onDelete: Cascade)
+
   fileName    String
   fileUrl     String
   fileType    String
   fileSize    Int
   description String?
-  
-  createdAt   DateTime @default(now())
-  
+
+  createdAt DateTime @default(now())
+
   @@index([caseId])
   @@map("evidence")
 }
@@ -138,68 +159,68 @@ model Evidence {
 // ============================================
 
 model Company {
-  id          String   @id @default(cuid())
-  name        String   @unique
-  logo        String?
-  website     String?
-  dappUrl     String?
-  github      String?
+  id            String  @id @default(cuid())
+  name          String  @unique
+  logo          String?
+  website       String?
+  dappUrl       String?
+  github        String?
   documentation String?
-  discord     String?
-  telegram    String?
-  description String?  @db.Text
-  
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  
+  discord       String?
+  telegram      String?
+  description   String? @db.Text
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
   // Relations
-  bounties    Bounty[]
-  
+  bounties Bounty[]
+
   @@map("companies")
 }
 
 model Bounty {
-  id              String        @id @default(cuid())
-  bountyId        String        @unique // e.g., "SC-0001", "WEB3-0001"
-  title           String
-  description     String        @db.Text
-  category        BountyCategory
-  
+  id          String         @id @default(cuid())
+  bountyId    String         @unique // e.g., "SC-0001", "WEB3-0001"
+  title       String
+  description String         @db.Text
+  category    BountyCategory
+
   // Company info
-  companyId       String
-  company         Company       @relation(fields: [companyId], references: [id])
-  
+  companyId String
+  company   Company @relation(fields: [companyId], references: [id])
+
   // Bounty details
-  totalReward     Decimal       @db.Decimal(20, 2)
-  rewardToken     String        @default("USDC")
-  severity        Severity
-  status          BountyStatus  @default(ACTIVE)
-  
+  totalReward Decimal      @db.Decimal(20, 2)
+  rewardToken String       @default("USDC")
+  severity    Severity
+  status      BountyStatus @default(ACTIVE)
+
   // Dates
-  deadline        DateTime
-  startDate       DateTime      @default(now())
-  completedAt     DateTime?
-  
+  deadline    DateTime
+  startDate   DateTime  @default(now())
+  completedAt DateTime?
+
   // Scope
-  scope           String        @db.Text
-  inScope         String[]      // Array of in-scope items
-  outOfScope      String[]      // Array of out-of-scope items
-  
+  scope      String   @db.Text
+  inScope    String[] // Array of in-scope items
+  outOfScope String[] // Array of out-of-scope items
+
   // Tech stack (for Web3 hacking)
-  techStack       String[]
-  
+  techStack String[]
+
   // Security focus
-  securityFocus   String?       @db.Text
-  
-  createdAt       DateTime      @default(now())
-  updatedAt       DateTime      @updatedAt
-  
+  securityFocus String? @db.Text
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
   // Relations
   rewardBreakdown RewardBreakdown[]
   rules           BountyRule[]
   submissions     BountySubmission[]
   participants    BountyParticipant[]
-  
+
   @@index([category])
   @@index([status])
   @@index([companyId])
@@ -227,40 +248,40 @@ enum BountyStatus {
 }
 
 model RewardBreakdown {
-  id          String   @id @default(cuid())
-  bountyId    String
-  bounty      Bounty   @relation(fields: [bountyId], references: [id], onDelete: Cascade)
-  
+  id       String @id @default(cuid())
+  bountyId String
+  bounty   Bounty @relation(fields: [bountyId], references: [id], onDelete: Cascade)
+
   severity    Severity
   amount      Decimal  @db.Decimal(20, 2)
   description String?
-  
+
   @@index([bountyId])
   @@map("reward_breakdowns")
 }
 
 model BountyRule {
-  id          String   @id @default(cuid())
-  bountyId    String
-  bounty      Bounty   @relation(fields: [bountyId], references: [id], onDelete: Cascade)
-  
-  ruleNumber  Int
-  ruleText    String   @db.Text
-  
+  id       String @id @default(cuid())
+  bountyId String
+  bounty   Bounty @relation(fields: [bountyId], references: [id], onDelete: Cascade)
+
+  ruleNumber Int
+  ruleText   String @db.Text
+
   @@index([bountyId])
   @@map("bounty_rules")
 }
 
 model BountyParticipant {
-  id          String   @id @default(cuid())
-  bountyId    String
-  bounty      Bounty   @relation(fields: [bountyId], references: [id], onDelete: Cascade)
-  
-  userId      String
-  user        User     @relation(fields: [userId], references: [id])
-  
-  joinedAt    DateTime @default(now())
-  
+  id       String @id @default(cuid())
+  bountyId String
+  bounty   Bounty @relation(fields: [bountyId], references: [id], onDelete: Cascade)
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
+
+  joinedAt DateTime @default(now())
+
   @@unique([bountyId, userId])
   @@index([bountyId])
   @@index([userId])
@@ -268,40 +289,40 @@ model BountyParticipant {
 }
 
 model BountySubmission {
-  id              String             @id @default(cuid())
-  bountyId        String
-  bounty          Bounty             @relation(fields: [bountyId], references: [id])
-  
-  userId          String
-  user            User               @relation(fields: [userId], references: [id])
-  
-  title           String
-  description     String             @db.Text
-  severity        Severity
+  id       String @id @default(cuid())
+  bountyId String
+  bounty   Bounty @relation(fields: [bountyId], references: [id])
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
+
+  title             String
+  description       String   @db.Text
+  severity          Severity
   vulnerabilityType String
-  
+
   // Proof of Concept
-  pocDescription  String             @db.Text
-  pocSteps        String[]
-  pocVideoUrl     String?
-  
+  pocDescription String   @db.Text
+  pocSteps       String[]
+  pocVideoUrl    String?
+
   // Status
-  status          SubmissionStatus   @default(PENDING)
-  reviewedAt      DateTime?
-  reviewedBy      String?
-  reviewNotes     String?            @db.Text
-  
+  status      SubmissionStatus @default(PENDING)
+  reviewedAt  DateTime?
+  reviewedBy  String?
+  reviewNotes String?          @db.Text
+
   // Reward
-  rewardAmount    Decimal?           @db.Decimal(20, 2)
-  rewardPaid      Boolean            @default(false)
-  paidAt          DateTime?
-  
-  createdAt       DateTime           @default(now())
-  updatedAt       DateTime           @updatedAt
-  
+  rewardAmount Decimal?  @db.Decimal(20, 2)
+  rewardPaid   Boolean   @default(false)
+  paidAt       DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
   // Relations
-  attachments     SubmissionAttachment[]
-  
+  attachments SubmissionAttachment[]
+
   @@index([bountyId])
   @@index([userId])
   @@index([status])
@@ -318,17 +339,17 @@ enum SubmissionStatus {
 }
 
 model SubmissionAttachment {
-  id            String           @id @default(cuid())
-  submissionId  String
-  submission    BountySubmission @relation(fields: [submissionId], references: [id], onDelete: Cascade)
-  
-  fileName      String
-  fileUrl       String
-  fileType      String
-  fileSize      Int
-  
-  createdAt     DateTime         @default(now())
-  
+  id           String           @id @default(cuid())
+  submissionId String
+  submission   BountySubmission @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+
+  fileName String
+  fileUrl  String
+  fileType String
+  fileSize Int
+
+  createdAt DateTime @default(now())
+
   @@index([submissionId])
   @@map("submission_attachments")
 }
@@ -338,24 +359,24 @@ model SubmissionAttachment {
 // ============================================
 
 model Comment {
-  id          String   @id @default(cuid())
-  content     String   @db.Text
-  
+  id      String @id @default(cuid())
+  content String @db.Text
+
   // Can be attached to Case or Bounty Submission
-  caseId      String?
-  case        Case?    @relation(fields: [caseId], references: [id], onDelete: Cascade)
-  
-  userId      String
-  user        User     @relation(fields: [userId], references: [id])
-  
+  caseId String?
+  case   Case?   @relation(fields: [caseId], references: [id], onDelete: Cascade)
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
+
   // Parent comment for replies
-  parentId    String?
-  parent      Comment? @relation("CommentReplies", fields: [parentId], references: [id])
-  replies     Comment[] @relation("CommentReplies")
-  
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  
+  parentId String?
+  parent   Comment?  @relation("CommentReplies", fields: [parentId], references: [id])
+  replies  Comment[] @relation("CommentReplies")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
   @@index([caseId])
   @@index([userId])
   @@index([parentId])
@@ -367,16 +388,16 @@ model Comment {
 // ============================================
 
 model Statistics {
-  id                    String   @id @default(cuid())
-  date                  DateTime @unique @default(now())
-  
-  totalCases            Int      @default(0)
-  totalBounties         Int      @default(0)
+  id   String   @id @default(cuid())
+  date DateTime @unique @default(now())
+
+  totalCases              Int     @default(0)
+  totalBounties           Int     @default(0)
   totalRewardsDistributed Decimal @default(0) @db.Decimal(20, 2)
-  totalUsers            Int      @default(0)
-  activeBounties        Int      @default(0)
-  
-  updatedAt             DateTime @updatedAt
-  
+  totalUsers              Int     @default(0)
+  activeBounties          Int     @default(0)
+
+  updatedAt DateTime @updatedAt
+
   @@map("statistics")
 }

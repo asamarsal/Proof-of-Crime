@@ -8,26 +8,45 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { AlertCircle, Upload, Shield, FileText, Sparkles, Coins } from "lucide-react"
+import { AlertCircle, Upload, Shield, FileText, Sparkles, Coins, Code, Globe, Users } from "lucide-react"
 import { useAccount, useWriteContract, useWaitForTransactionReceipt } from "wagmi"
 import { usdcrimeAbi } from "@/app/abi/usdcrimeAbi"
 import { useEffect } from "react"
 import { liskSepolia } from "@/config"
 
+type ReportCategory = "smart-contract" | "web3-hacking" | "people-bounty"
+
 export default function SubmitCasePage() {
+  const [activeTab, setActiveTab] = useState<ReportCategory>("smart-contract")
   const [files, setFiles] = useState<File[]>([])
+  
+  // Common fields
   const [caseTitle, setCaseTitle] = useState("")
-  const [crimeType, setCrimeType] = useState("")
-  const [blockchain, setBlockchain] = useState("")
-  const [suspectWallet, setSuspectWallet] = useState("")
-  const [contractAddress, setContractAddress] = useState("")
-  const [estimatedLoss, setEstimatedLoss] = useState("")
-  const [numVictims, setNumVictims] = useState("")
   const [description, setDescription] = useState("")
-  const [transactionHashes, setTransactionHashes] = useState("")
   const [yourName, setYourName] = useState("")
   const [email, setEmail] = useState("")
   const [confirmed, setConfirmed] = useState(false)
+  
+  // Smart Contract Audit fields
+  const [contractAddress, setContractAddress] = useState("")
+  const [blockchain, setBlockchain] = useState("")
+  const [contractSource, setContractSource] = useState("")
+  const [vulnerabilityType, setVulnerabilityType] = useState("")
+  const [severity, setSeverity] = useState("")
+  
+  // Web3 Website Hacking fields
+  const [websiteUrl, setWebsiteUrl] = useState("")
+  const [dappUrl, setDappUrl] = useState("")
+  const [exploitType, setExploitType] = useState("")
+  const [affectedComponents, setAffectedComponents] = useState("")
+  
+  // People Bounty fields
+  const [suspectName, setSuspectName] = useState("")
+  const [suspectWallet, setSuspectWallet] = useState("")
+  const [crimeType, setCrimeType] = useState("")
+  const [estimatedLoss, setEstimatedLoss] = useState("")
+  const [numVictims, setNumVictims] = useState("")
+  const [transactionHashes, setTransactionHashes] = useState("")
 
   const USDCRIME_CONTRACT_ADDRESS = "0x7898de8bB562B6e31C7A10FA3AE84AB036B1e9Cd" as `0x${string}`
   
@@ -77,26 +96,30 @@ export default function SubmitCasePage() {
 
   const isClaimingFaucet = isPending || isConfirming
 
-  const handleAutoFill = () => {
-    setCaseTitle("SafeMoon V2 Rugpull Investigation")
-    setCrimeType("rugpull")
-    setBlockchain("bsc")
-    setSuspectWallet("0x8076C74C5e3F5852037F31Ff0093Eeb8c8ADd8D3")
-    setContractAddress("0x42981d0bfbAf196529376EE702F2a9Eb9092fcB5")
-    setEstimatedLoss("1200000")
-    setNumVictims("8300")
-    setDescription("SafeMoon V2 token experienced a coordinated pump and dump scheme. The developers created artificial hype through social media campaigns, causing the token price to surge 300% in 48 hours. Shortly after reaching peak price, the team executed a massive sell-off, draining liquidity pools and leaving retail investors with worthless tokens. Evidence shows coordinated wallet movements and suspicious transaction patterns indicating premeditated fraud.")
-    setTransactionHashes("0x1a2b3c4d5e6f7g8h9i0j1k2l3m4n5o6p7q8r9s0t1u2v3w4x5y6z\n0x9z8y7x6w5v4u3t2s1r0q9p8o7n6m5l4k3j2i1h0g9f8e7d6c5b4a")
-    setYourName("Anonymous Investigator")
-    setEmail("investigator@proofofcrime.com")
-    setConfirmed(true)
-  }
+  const tabs = [
+    {
+      id: "smart-contract" as ReportCategory,
+      label: "Smart Contract Audit",
+      icon: Code,
+      color: "from-purple-500 to-pink-500"
+    },
+    {
+      id: "web3-hacking" as ReportCategory,
+      label: "Web3 Website Hacking",
+      icon: Globe,
+      color: "from-cyan-500 to-blue-500"
+    },
+    {
+      id: "people-bounty" as ReportCategory,
+      label: "People Bounty",
+      icon: Users,
+      color: "from-orange-500 to-red-500"
+    }
+  ]
 
   return (
     <div className="min-h-screen bg-background text-foreground relative">
       <Navigation />
-      
-
       
       <main className="pt-24 pb-12 px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto">
         
@@ -120,11 +143,55 @@ export default function SubmitCasePage() {
           </div>
           
           <h1 className="text-4xl md:text-5xl font-bold tracking-tight mb-4">
-            Submit a <span className="text-primary neon-text-cyan">Crime Case</span>
+            Submit a <span className="text-primary neon-text-cyan">Report</span>
           </h1>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Help us track and prevent Web3 crimes. Your submission will be reviewed by our team and added to our database if verified.
+            Choose the type of report you want to submit and help us make Web3 safer.
           </p>
+        </div>
+
+        {/* Tab Selector */}
+        <div className="mb-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {tabs.map((tab) => {
+              const Icon = tab.icon
+              const isActive = activeTab === tab.id
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`
+                    relative p-6 rounded-xl border-2 transition-all duration-300
+                    ${isActive 
+                      ? 'border-primary bg-gradient-to-br ' + tab.color + ' bg-opacity-10 shadow-lg shadow-primary/20' 
+                      : 'border-border/30 glass hover:border-primary/50'
+                    }
+                  `}
+                >
+                  <div className="flex flex-col items-center gap-3">
+                    <div className={`
+                      p-3 rounded-lg transition-all duration-300
+                      ${isActive 
+                        ? 'bg-gradient-to-br ' + tab.color + ' text-white shadow-lg' 
+                        : 'bg-background/50 text-muted-foreground'
+                      }
+                    `}>
+                      <Icon className="w-6 h-6" />
+                    </div>
+                    <span className={`
+                      text-sm font-semibold text-center transition-colors
+                      ${isActive ? 'text-foreground' : 'text-muted-foreground'}
+                    `}>
+                      {tab.label}
+                    </span>
+                  </div>
+                  {isActive && (
+                    <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-primary/5 to-secondary/5 pointer-events-none" />
+                  )}
+                </button>
+              )
+            })}
+          </div>
         </div>
 
         {/* Alert Box */}
@@ -143,141 +210,317 @@ export default function SubmitCasePage() {
           </CardContent>
         </Card>
 
-        {/* Form */}
+        {/* Form Card */}
         <Card className="glass border-border/50">
           <CardHeader>
-            <div className="flex items-center justify-between">
-              <CardTitle className="flex items-center gap-2">
-                <FileText className="w-5 h-5 text-primary" />
-                Case Information
-              </CardTitle>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleAutoFill}
-                className="border-primary/30 hover:bg-primary/10"
-              >
-                <Sparkles className="w-4 h-4 mr-2" />
-                Auto Fill Demo
-              </Button>
-            </div>
+            <CardTitle className="flex items-center gap-2">
+              <FileText className="w-5 h-5 text-primary" />
+              {activeTab === "smart-contract" && "Smart Contract Audit Report"}
+              {activeTab === "web3-hacking" && "Web3 Website Hacking Report"}
+              {activeTab === "people-bounty" && "People Bounty Report"}
+            </CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
             
-            {/* Case Title */}
+            {/* Common Fields */}
             <div>
               <label className="text-sm font-medium mb-2 block">
-                Case Title <span className="text-red-500">*</span>
+                Report Title <span className="text-red-500">*</span>
               </label>
               <Input 
                 value={caseTitle}
                 onChange={(e) => setCaseTitle(e.target.value)}
-                placeholder="e.g., Rugpull on XYZ Token"
+                placeholder={
+                  activeTab === "smart-contract" ? "e.g., Critical Reentrancy Vulnerability in DeFi Protocol" :
+                  activeTab === "web3-hacking" ? "e.g., XSS Vulnerability in DApp Frontend" :
+                  "e.g., Suspected Rugpull by Known Scammer"
+                }
                 className="bg-background/50 border-primary/20 focus:border-primary/50"
               />
             </div>
 
-            {/* Crime Type */}
-            <div>
-              <label className="text-sm font-medium mb-2 block">
-                Crime Type <span className="text-red-500">*</span>
-              </label>
-              <Select value={crimeType} onValueChange={setCrimeType}>
-                <SelectTrigger className="bg-background/50 border-primary/20">
-                  <SelectValue placeholder="Select crime type" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="rugpull">Rug Pull</SelectItem>
-                  <SelectItem value="pump-dump">Pump & Dump</SelectItem>
-                  <SelectItem value="nft-scam">NFT Scam</SelectItem>
-                  <SelectItem value="phishing">Phishing</SelectItem>
-                  <SelectItem value="money-laundering">Money Laundering</SelectItem>
-                  <SelectItem value="smart-contract-exploit">Smart Contract Exploit</SelectItem>
-                  <SelectItem value="identity-theft">Identity Theft</SelectItem>
-                  <SelectItem value="ponzi-scheme">Ponzi Scheme</SelectItem>
-                  <SelectItem value="other">Other</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+            {/* Smart Contract Audit Fields */}
+            {activeTab === "smart-contract" && (
+              <>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-sm font-medium mb-2 block">
+                      Contract Address <span className="text-red-500">*</span>
+                    </label>
+                    <Input 
+                      value={contractAddress}
+                      onChange={(e) => setContractAddress(e.target.value)}
+                      placeholder="0x..."
+                      className="bg-background/50 border-primary/20 focus:border-primary/50"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium mb-2 block">
+                      Blockchain <span className="text-red-500">*</span>
+                    </label>
+                    <Select value={blockchain} onValueChange={setBlockchain}>
+                      <SelectTrigger className="bg-background/50 border-primary/20">
+                        <SelectValue placeholder="Select blockchain" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="ethereum">Ethereum</SelectItem>
+                        <SelectItem value="bsc">Binance Smart Chain</SelectItem>
+                        <SelectItem value="polygon">Polygon</SelectItem>
+                        <SelectItem value="arbitrum">Arbitrum</SelectItem>
+                        <SelectItem value="optimism">Optimism</SelectItem>
+                        <SelectItem value="avalanche">Avalanche</SelectItem>
+                        <SelectItem value="other">Other</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
 
-            {/* Blockchain */}
-            <div>
-              <label className="text-sm font-medium mb-2 block">
-                Blockchain <span className="text-red-500">*</span>
-              </label>
-              <Select value={blockchain} onValueChange={setBlockchain}>
-                <SelectTrigger className="bg-background/50 border-primary/20">
-                  <SelectValue placeholder="Select blockchain" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="ethereum">Ethereum</SelectItem>
-                  <SelectItem value="bsc">Binance Smart Chain</SelectItem>
-                  <SelectItem value="polygon">Polygon</SelectItem>
-                  <SelectItem value="solana">Solana</SelectItem>
-                  <SelectItem value="avalanche">Avalanche</SelectItem>
-                  <SelectItem value="arbitrum">Arbitrum</SelectItem>
-                  <SelectItem value="optimism">Optimism</SelectItem>
-                  <SelectItem value="tron">Tron</SelectItem>
-                  <SelectItem value="other">Other</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-sm font-medium mb-2 block">
+                      Vulnerability Type <span className="text-red-500">*</span>
+                    </label>
+                    <Select value={vulnerabilityType} onValueChange={setVulnerabilityType}>
+                      <SelectTrigger className="bg-background/50 border-primary/20">
+                        <SelectValue placeholder="Select type" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="reentrancy">Reentrancy</SelectItem>
+                        <SelectItem value="overflow">Integer Overflow/Underflow</SelectItem>
+                        <SelectItem value="access-control">Access Control</SelectItem>
+                        <SelectItem value="front-running">Front-Running</SelectItem>
+                        <SelectItem value="logic-error">Logic Error</SelectItem>
+                        <SelectItem value="oracle-manipulation">Oracle Manipulation</SelectItem>
+                        <SelectItem value="other">Other</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium mb-2 block">
+                      Severity <span className="text-red-500">*</span>
+                    </label>
+                    <Select value={severity} onValueChange={setSeverity}>
+                      <SelectTrigger className="bg-background/50 border-primary/20">
+                        <SelectValue placeholder="Select severity" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="critical">Critical</SelectItem>
+                        <SelectItem value="high">High</SelectItem>
+                        <SelectItem value="medium">Medium</SelectItem>
+                        <SelectItem value="low">Low</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
 
-            {/* Wallet Address / Contract Address */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="text-sm font-medium mb-2 block">
-                  Suspect Wallet Address
-                </label>
-                <Input 
-                  value={suspectWallet}
-                  onChange={(e) => setSuspectWallet(e.target.value)}
-                  placeholder="0x..."
-                  className="bg-background/50 border-primary/20 focus:border-primary/50"
-                />
-              </div>
-              <div>
-                <label className="text-sm font-medium mb-2 block">
-                  Contract Address (if applicable)
-                </label>
-                <Input 
-                  value={contractAddress}
-                  onChange={(e) => setContractAddress(e.target.value)}
-                  placeholder="0x..."
-                  className="bg-background/50 border-primary/20 focus:border-primary/50"
-                />
-              </div>
-            </div>
+                <div>
+                  <label className="text-sm font-medium mb-2 block">
+                    Contract Source Code (Optional)
+                  </label>
+                  <Textarea 
+                    value={contractSource}
+                    onChange={(e) => setContractSource(e.target.value)}
+                    placeholder="Paste the vulnerable contract code or provide a link to verified source..."
+                    className="min-h-[120px] bg-background/50 border-primary/20 focus:border-primary/50 font-mono text-xs"
+                  />
+                </div>
+              </>
+            )}
 
-            {/* Estimated Loss */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="text-sm font-medium mb-2 block">
-                  Estimated Loss (USD)
-                </label>
-                <Input 
-                  type="number"
-                  value={estimatedLoss}
-                  onChange={(e) => setEstimatedLoss(e.target.value)}
-                  placeholder="e.g., 50000"
-                  className="bg-background/50 border-primary/20 focus:border-primary/50"
-                />
-              </div>
-              <div>
-                <label className="text-sm font-medium mb-2 block">
-                  Number of Victims (if known)
-                </label>
-                <Input 
-                  type="number"
-                  value={numVictims}
-                  onChange={(e) => setNumVictims(e.target.value)}
-                  placeholder="e.g., 100"
-                  className="bg-background/50 border-primary/20 focus:border-primary/50"
-                />
-              </div>
-            </div>
+            {/* Web3 Website Hacking Fields */}
+            {activeTab === "web3-hacking" && (
+              <>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-sm font-medium mb-2 block">
+                      Website URL <span className="text-red-500">*</span>
+                    </label>
+                    <Input 
+                      value={websiteUrl}
+                      onChange={(e) => setWebsiteUrl(e.target.value)}
+                      placeholder="https://example.com"
+                      className="bg-background/50 border-primary/20 focus:border-primary/50"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium mb-2 block">
+                      DApp URL (if applicable)
+                    </label>
+                    <Input 
+                      value={dappUrl}
+                      onChange={(e) => setDappUrl(e.target.value)}
+                      placeholder="https://app.example.com"
+                      className="bg-background/50 border-primary/20 focus:border-primary/50"
+                    />
+                  </div>
+                </div>
 
-            {/* Description */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-sm font-medium mb-2 block">
+                      Exploit Type <span className="text-red-500">*</span>
+                    </label>
+                    <Select value={exploitType} onValueChange={setExploitType}>
+                      <SelectTrigger className="bg-background/50 border-primary/20">
+                        <SelectValue placeholder="Select type" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="xss">Cross-Site Scripting (XSS)</SelectItem>
+                        <SelectItem value="csrf">Cross-Site Request Forgery (CSRF)</SelectItem>
+                        <SelectItem value="sql-injection">SQL Injection</SelectItem>
+                        <SelectItem value="wallet-drainer">Wallet Drainer</SelectItem>
+                        <SelectItem value="phishing">Phishing Attack</SelectItem>
+                        <SelectItem value="session-hijacking">Session Hijacking</SelectItem>
+                        <SelectItem value="other">Other</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium mb-2 block">
+                      Severity <span className="text-red-500">*</span>
+                    </label>
+                    <Select value={severity} onValueChange={setSeverity}>
+                      <SelectTrigger className="bg-background/50 border-primary/20">
+                        <SelectValue placeholder="Select severity" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="critical">Critical</SelectItem>
+                        <SelectItem value="high">High</SelectItem>
+                        <SelectItem value="medium">Medium</SelectItem>
+                        <SelectItem value="low">Low</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="text-sm font-medium mb-2 block">
+                    Affected Components
+                  </label>
+                  <Input 
+                    value={affectedComponents}
+                    onChange={(e) => setAffectedComponents(e.target.value)}
+                    placeholder="e.g., Login page, Wallet connection, NFT marketplace"
+                    className="bg-background/50 border-primary/20 focus:border-primary/50"
+                  />
+                </div>
+              </>
+            )}
+
+            {/* People Bounty Fields */}
+            {activeTab === "people-bounty" && (
+              <>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-sm font-medium mb-2 block">
+                      Suspect Name/Alias
+                    </label>
+                    <Input 
+                      value={suspectName}
+                      onChange={(e) => setSuspectName(e.target.value)}
+                      placeholder="Known name or alias"
+                      className="bg-background/50 border-primary/20 focus:border-primary/50"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium mb-2 block">
+                      Suspect Wallet Address <span className="text-red-500">*</span>
+                    </label>
+                    <Input 
+                      value={suspectWallet}
+                      onChange={(e) => setSuspectWallet(e.target.value)}
+                      placeholder="0x..."
+                      className="bg-background/50 border-primary/20 focus:border-primary/50"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-sm font-medium mb-2 block">
+                      Crime Type <span className="text-red-500">*</span>
+                    </label>
+                    <Select value={crimeType} onValueChange={setCrimeType}>
+                      <SelectTrigger className="bg-background/50 border-primary/20">
+                        <SelectValue placeholder="Select crime type" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="rugpull">Rug Pull</SelectItem>
+                        <SelectItem value="pump-dump">Pump & Dump</SelectItem>
+                        <SelectItem value="nft-scam">NFT Scam</SelectItem>
+                        <SelectItem value="phishing">Phishing</SelectItem>
+                        <SelectItem value="money-laundering">Money Laundering</SelectItem>
+                        <SelectItem value="ponzi-scheme">Ponzi Scheme</SelectItem>
+                        <SelectItem value="identity-theft">Identity Theft</SelectItem>
+                        <SelectItem value="other">Other</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium mb-2 block">
+                      Blockchain <span className="text-red-500">*</span>
+                    </label>
+                    <Select value={blockchain} onValueChange={setBlockchain}>
+                      <SelectTrigger className="bg-background/50 border-primary/20">
+                        <SelectValue placeholder="Select blockchain" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="ethereum">Ethereum</SelectItem>
+                        <SelectItem value="bsc">Binance Smart Chain</SelectItem>
+                        <SelectItem value="polygon">Polygon</SelectItem>
+                        <SelectItem value="solana">Solana</SelectItem>
+                        <SelectItem value="avalanche">Avalanche</SelectItem>
+                        <SelectItem value="arbitrum">Arbitrum</SelectItem>
+                        <SelectItem value="optimism">Optimism</SelectItem>
+                        <SelectItem value="tron">Tron</SelectItem>
+                        <SelectItem value="other">Other</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-sm font-medium mb-2 block">
+                      Estimated Loss (USD)
+                    </label>
+                    <Input 
+                      type="number"
+                      value={estimatedLoss}
+                      onChange={(e) => setEstimatedLoss(e.target.value)}
+                      placeholder="e.g., 50000"
+                      className="bg-background/50 border-primary/20 focus:border-primary/50"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium mb-2 block">
+                      Number of Victims (if known)
+                    </label>
+                    <Input 
+                      type="number"
+                      value={numVictims}
+                      onChange={(e) => setNumVictims(e.target.value)}
+                      placeholder="e.g., 100"
+                      className="bg-background/50 border-primary/20 focus:border-primary/50"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="text-sm font-medium mb-2 block">
+                    Transaction Hash(es)
+                  </label>
+                  <Textarea 
+                    value={transactionHashes}
+                    onChange={(e) => setTransactionHashes(e.target.value)}
+                    placeholder="Enter transaction hashes (one per line)"
+                    className="min-h-[80px] bg-background/50 border-primary/20 focus:border-primary/50 font-mono text-xs"
+                  />
+                </div>
+              </>
+            )}
+
+            {/* Common Description Field */}
             <div>
               <label className="text-sm font-medium mb-2 block">
                 Detailed Description <span className="text-red-500">*</span>
@@ -285,21 +528,14 @@ export default function SubmitCasePage() {
               <Textarea 
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
-                placeholder="Provide a detailed description of the crime, including timeline, how it happened, and any relevant information..."
+                placeholder={
+                  activeTab === "smart-contract" 
+                    ? "Describe the vulnerability, how it can be exploited, potential impact, and steps to reproduce..."
+                    : activeTab === "web3-hacking"
+                    ? "Describe the exploit, how it works, potential impact, and proof of concept..."
+                    : "Provide a detailed description of the crime, including timeline, how it happened, and any relevant information..."
+                }
                 className="min-h-[150px] bg-background/50 border-primary/20 focus:border-primary/50"
-              />
-            </div>
-
-            {/* Transaction Hash */}
-            <div>
-              <label className="text-sm font-medium mb-2 block">
-                Transaction Hash(es)
-              </label>
-              <Textarea 
-                value={transactionHashes}
-                onChange={(e) => setTransactionHashes(e.target.value)}
-                placeholder="Enter transaction hashes (one per line)"
-                className="min-h-[80px] bg-background/50 border-primary/20 focus:border-primary/50"
               />
             </div>
 
@@ -314,7 +550,7 @@ export default function SubmitCasePage() {
                   Click to upload or drag and drop
                 </p>
                 <p className="text-xs text-muted-foreground">
-                  Screenshots, documents, videos (Max 50MB total)
+                  Screenshots, documents, videos, POC code (Max 50MB total)
                 </p>
               </div>
             </div>
@@ -379,7 +615,7 @@ export default function SubmitCasePage() {
               <Button 
                 className="flex-1 bg-gradient-to-r from-primary to-secondary hover:opacity-90 text-white font-bold"
               >
-                Submit Case
+                Submit Report
               </Button>
             </div>
           </CardContent>
@@ -402,7 +638,7 @@ export default function SubmitCasePage() {
               <FileText className="w-8 h-8 text-primary mx-auto mb-3" />
               <h3 className="font-semibold mb-2">Expert Review</h3>
               <p className="text-sm text-muted-foreground">
-                Our team of blockchain analysts will review your submission.
+                Our team of security experts will review your submission.
               </p>
             </CardContent>
           </Card>
@@ -412,7 +648,7 @@ export default function SubmitCasePage() {
               <AlertCircle className="w-8 h-8 text-primary mx-auto mb-3" />
               <h3 className="font-semibold mb-2">Community Impact</h3>
               <p className="text-sm text-muted-foreground">
-                Help protect others from falling victim to similar crimes.
+                Help protect others from falling victim to similar attacks.
               </p>
             </CardContent>
           </Card>
