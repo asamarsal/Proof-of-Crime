@@ -8,13 +8,13 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { AlertCircle, Upload, Shield, FileText, Sparkles, Coins, Code, Globe, Users } from "lucide-react"
-import { useAccount, useWriteContract, useWaitForTransactionReceipt } from "wagmi"
+import { AlertCircle, Upload, Shield, FileText, Sparkles, Coins, Code, Globe, Users, X, Plus } from "lucide-react"
+import { useAccount, useWriteContract, useWaitForTransactionReceipt, useReadContract } from "wagmi"
 import { usdcrimeAbi } from "@/app/abi/usdcrimeAbi"
 import { smartcontractbountyAbi } from "@/app/abi/smartcontractbountyAbi"
 import { useEffect } from "react"
 import { liskSepolia } from "@/config"
-import { parseUnits } from "viem"
+import { parseUnits, formatUnits } from "viem"
 
 type ReportCategory = "smart-contract" | "web3-hacking" | "people-bounty"
 
@@ -25,11 +25,9 @@ export default function SubmitCasePage() {
   // Common fields
   const [caseTitle, setCaseTitle] = useState("")
   const [description, setDescription] = useState("")
-  const [yourName, setYourName] = useState("")
-  const [email, setEmail] = useState("")
   const [confirmed, setConfirmed] = useState(false)
   
-  // Smart Contract Bounty fields (NEW)
+  // Bounty creation fields (Smart Contract & Web3 Hacking)
   const [lockAmount, setLockAmount] = useState("")
   const [depositAmount, setDepositAmount] = useState("")
   const [durationDays, setDurationDays] = useState("")
@@ -37,32 +35,45 @@ export default function SubmitCasePage() {
   const [mediumPct, setMediumPct] = useState("")
   const [highPct, setHighPct] = useState("")
   
-  // Smart Contract Audit fields (OLD - for reference)
-  const [contractAddress, setContractAddress] = useState("")
-  const [blockchain, setBlockchain] = useState("")
-  const [contractSource, setContractSource] = useState("")
-  const [vulnerabilityType, setVulnerabilityType] = useState("")
-  const [severity, setSeverity] = useState("")
+  // Approvers configuration
+  const [approvers, setApprovers] = useState<string[]>([""])
+  const [requiredApprovals, setRequiredApprovals] = useState("")
   
-  // Web3 Website Hacking fields
+  // Web3 Website Hacking specific (for bounty context)
   const [websiteUrl, setWebsiteUrl] = useState("")
   const [dappUrl, setDappUrl] = useState("")
-  const [exploitType, setExploitType] = useState("")
-  const [affectedComponents, setAffectedComponents] = useState("")
+  const [githubUrl, setGithubUrl] = useState("")
+  const [targetScope, setTargetScope] = useState("")
   
-  // People Bounty fields
+  // People Bounty fields (for reporting scammers)
   const [suspectName, setSuspectName] = useState("")
   const [suspectWallet, setSuspectWallet] = useState("")
   const [crimeType, setCrimeType] = useState("")
+  const [blockchain, setBlockchain] = useState("")
   const [estimatedLoss, setEstimatedLoss] = useState("")
   const [numVictims, setNumVictims] = useState("")
   const [transactionHashes, setTransactionHashes] = useState("")
+  const [yourName, setYourName] = useState("")
+  const [email, setEmail] = useState("")
 
   // Contract addresses
   const USDCRIME_CONTRACT_ADDRESS = "0x7898de8bB562B6e31C7A10FA3AE84AB036B1e9Cd" as `0x${string}`
   const BOUNTY_CONTRACT_ADDRESS = "0xF439FbFC5a1BF5B70D87E6680b83F2328cF69279" as `0x${string}`
   
   const { address, isConnected } = useAccount()
+  
+  // Read USDCRIME balance
+  const { data: usdcrimeBalance } = useReadContract({
+    address: USDCRIME_CONTRACT_ADDRESS,
+    abi: usdcrimeAbi,
+    functionName: 'balanceOf',
+    args: address ? [address] : undefined,
+    query: {
+      enabled: !!address,
+    }
+  })
+
+  const hasMinimumBalance = usdcrimeBalance ? Number(formatUnits(usdcrimeBalance as bigint, 6)) >= 100 : false
   
   // Faucet claim
   const { data: faucetHash, writeContract: writeFaucet, isPending: isFaucetPending, error: faucetError } = useWriteContract()
@@ -154,6 +165,12 @@ export default function SubmitCasePage() {
       setLowPct("")
       setMediumPct("")
       setHighPct("")
+      setApprovers([""])
+      setRequiredApprovals("")
+      setWebsiteUrl("")
+      setDappUrl("")
+      setGithubUrl("")
+      setTargetScope("")
       setConfirmed(false)
     }
   }, [isBountySuccess])
@@ -176,21 +193,38 @@ export default function SubmitCasePage() {
     if (activeTab === "smart-contract") {
       setCaseTitle("Critical Smart Contract Audit - DeFi Protocol")
       setDescription("We need security researchers to audit our DeFi lending protocol smart contract. The contract handles user deposits, lending, and liquidations. We're offering rewards based on severity of findings.")
-      setLockAmount("10000") // 10,000 USDCRIME
-      setDepositAmount("5000") // 5,000 USDCRIME
-      setDurationDays("30") // 30 days
-      setLowPct("10") // 10% for Low severity
-      setMediumPct("25") // 25% for Medium severity
-      setHighPct("50") // 50% for High severity
+      setLockAmount("10000")
+      setDepositAmount("5000")
+      setDurationDays("30")
+      setLowPct("10")
+      setMediumPct("25")
+      setHighPct("50")
+      setApprovers([
+        "0xfeff727205fe524a3a8a16c404fec9cfe4124acd",
+        "0xF776fFbFD7AA96CF878a133d744c70ee83270026",
+        "0xE4a05518Cf22aE1226C8c4B0aC669E2cd50c48f3"
+      ])
+      setRequiredApprovals("2")
       setConfirmed(true)
     } else if (activeTab === "web3-hacking") {
-      setCaseTitle("XSS Vulnerability in DApp Frontend")
-      setDescription("Found critical XSS vulnerability in the wallet connection component that could lead to wallet draining attacks.")
+      setCaseTitle("Web3 DApp Security Audit Bounty")
+      setDescription("Looking for security researchers to find vulnerabilities in our Web3 application. Focus on wallet integration, smart contract interactions, and frontend security.")
       setWebsiteUrl("https://example-defi.com")
       setDappUrl("https://app.example-defi.com")
-      setExploitType("xss")
-      setSeverity("critical")
-      setAffectedComponents("Wallet connection, User profile page")
+      setGithubUrl("https://github.com/example/defi-dapp")
+      setTargetScope("Wallet connection, Smart contract integration, User authentication, NFT marketplace")
+      setLockAmount("15000")
+      setDepositAmount("7500")
+      setDurationDays("45")
+      setLowPct("15")
+      setMediumPct("30")
+      setHighPct("60")
+      setApprovers([
+        "0xfeff727205fe524a3a8a16c404fec9cfe4124acd",
+        "0xF776fFbFD7AA96CF878a133d744c70ee83270026",
+        "0xE4a05518Cf22aE1226C8c4B0aC669E2cd50c48f3"
+      ])
+      setRequiredApprovals("2")
       setConfirmed(true)
     } else if (activeTab === "people-bounty") {
       setCaseTitle("Suspected Rugpull by Known Scammer")
@@ -212,9 +246,31 @@ export default function SubmitCasePage() {
       return
     }
 
-    // Validation for smart contract bounty
+    if (!hasMinimumBalance) {
+      alert('You need at least 100 USDCRIME to create a bounty. Please claim from faucet first.')
+      return
+    }
+
+    // Validation for bounty creation
     if (!caseTitle || !description || !lockAmount || !depositAmount || !durationDays || !lowPct || !mediumPct || !highPct) {
       alert('Please fill in all required fields!')
+      return
+    }
+
+    // Validate approvers
+    const validApprovers = approvers.filter(addr => addr.trim() !== "" && addr.startsWith("0x"))
+    if (validApprovers.length === 0) {
+      alert('Please add at least one approver address!')
+      return
+    }
+
+    if (!requiredApprovals || parseInt(requiredApprovals) === 0) {
+      alert('Please set required approvals!')
+      return
+    }
+
+    if (parseInt(requiredApprovals) > validApprovers.length) {
+      alert('Required approvals cannot be greater than number of approvers!')
       return
     }
 
@@ -230,8 +286,7 @@ export default function SubmitCasePage() {
     }
 
     try {
-      // Calculate total amount to approve (lockAmount + depositAmount)
-      const lockAmountWei = parseUnits(lockAmount, 6) // USDCRIME has 6 decimals
+      const lockAmountWei = parseUnits(lockAmount, 6)
       const depositAmountWei = parseUnits(depositAmount, 6)
       const totalAmount = lockAmountWei + depositAmountWei
 
@@ -271,6 +326,23 @@ export default function SubmitCasePage() {
 
   const isBountyProcessing = isApprovalPending || isApprovalConfirming || isBountyPending || isBountyConfirming
 
+  // Approver management functions
+  const addApprover = () => {
+    setApprovers([...approvers, ""])
+  }
+
+  const removeApprover = (index: number) => {
+    if (approvers.length > 1) {
+      setApprovers(approvers.filter((_, i) => i !== index))
+    }
+  }
+
+  const updateApprover = (index: number, value: string) => {
+    const newApprovers = [...approvers]
+    newApprovers[index] = value
+    setApprovers(newApprovers)
+  }
+
   const tabs = [
     {
       id: "smart-contract" as ReportCategory,
@@ -280,13 +352,13 @@ export default function SubmitCasePage() {
     },
     {
       id: "web3-hacking" as ReportCategory,
-      label: "Web3 Website Hacking",
+      label: "Web3 Security Bounty",
       icon: Globe,
       color: "from-cyan-500 to-blue-500"
     },
     {
       id: "people-bounty" as ReportCategory,
-      label: "People Bounty",
+      label: "Report Scammer",
       icon: Users,
       color: "from-orange-500 to-red-500"
     }
@@ -305,23 +377,41 @@ export default function SubmitCasePage() {
             <span className="text-sm text-primary font-mono">SECURE SUBMISSION</span>
           </div>
           
-          {/* Claim Faucet Button */}
-          <div className="mb-6">
+          {/* Claim Faucet Button & Balance Display */}
+          <div className="mb-6 space-y-2">
             <Button
               onClick={handleClaimFaucet}
               disabled={isClaimingFaucet}
               className="px-6 py-3 rounded-lg bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white font-bold transition-all duration-300 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <Coins className="w-5 h-5 mr-2" />
-              {isClaimingFaucet ? 'Claiming...' : 'Claim Faucet'}
+              {isClaimingFaucet ? 'Claiming...' : 'Claim Faucet (1000 USDCRIME)'}
             </Button>
+            
+            {isConnected && (
+              <div className="text-sm">
+                <span className="text-muted-foreground">Your Balance: </span>
+                <span className={`font-bold ${hasMinimumBalance ? 'text-green-500' : 'text-orange-500'}`}>
+                  {usdcrimeBalance ? formatUnits(usdcrimeBalance as bigint, 6) : '0'} USDCRIME
+                </span>
+                {!hasMinimumBalance && (
+                  <span className="text-orange-500 ml-2">(Min. 100 required for bounty creation)</span>
+                )}
+              </div>
+            )}
           </div>
           
           <h1 className="text-4xl md:text-5xl font-bold tracking-tight mb-4">
-            Submit a <span className="text-primary neon-text-cyan">Report</span>
+            {activeTab === "people-bounty" ? "Report a " : "Create a "}
+            <span className="text-primary neon-text-cyan">
+              {activeTab === "people-bounty" ? "Scammer" : "Bounty"}
+            </span>
           </h1>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Choose the type of report you want to submit and help us make Web3 safer.
+            {activeTab === "people-bounty" 
+              ? "Help us track down scammers and protect the Web3 community."
+              : "Post a bounty for security researchers to find vulnerabilities."
+            }
           </p>
         </div>
 
@@ -389,9 +479,9 @@ export default function SubmitCasePage() {
               <div>
                 <h3 className="font-semibold text-orange-500 mb-1">Important Notice</h3>
                 <p className="text-sm text-muted-foreground">
-                  {activeTab === "smart-contract" 
-                    ? "You will need to approve USDCRIME tokens before creating the bounty. Make sure you have enough balance to cover both the lock amount and deposit amount."
-                    : "All submissions are reviewed manually. False reports may result in account suspension. Please provide accurate and verifiable information."
+                  {activeTab === "people-bounty" 
+                    ? "All submissions are reviewed manually. False reports may result in account suspension. Please provide accurate and verifiable information."
+                    : "You need at least 100 USDCRIME to create a bounty. Ensure you have sufficient balance to cover both lock and deposit amounts. Approvers will validate the bounty results."
                   }
                 </p>
               </div>
@@ -404,24 +494,24 @@ export default function SubmitCasePage() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <FileText className="w-5 h-5 text-primary" />
-              {activeTab === "smart-contract" && "Smart Contract Bounty"}
-              {activeTab === "web3-hacking" && "Web3 Website Hacking Report"}
-              {activeTab === "people-bounty" && "People Bounty Report"}
+              {activeTab === "smart-contract" && "Smart Contract Security Bounty"}
+              {activeTab === "web3-hacking" && "Web3 Application Security Bounty"}
+              {activeTab === "people-bounty" && "Scammer Report"}
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
             
-            {/* Common Fields */}
+            {/* Common Title Field */}
             <div>
               <label className="text-sm font-medium mb-2 block">
-                {activeTab === "smart-contract" ? "Bounty Title" : "Report Title"} <span className="text-red-500">*</span>
+                {activeTab === "people-bounty" ? "Report Title" : "Bounty Title"} <span className="text-red-500">*</span>
               </label>
               <Input 
                 value={caseTitle}
                 onChange={(e) => setCaseTitle(e.target.value)}
                 placeholder={
                   activeTab === "smart-contract" ? "e.g., Critical Smart Contract Audit - DeFi Protocol" :
-                  activeTab === "web3-hacking" ? "e.g., XSS Vulnerability in DApp Frontend" :
+                  activeTab === "web3-hacking" ? "e.g., Web3 DApp Security Audit Bounty" :
                   "e.g., Suspected Rugpull by Known Scammer"
                 }
                 className="bg-background/50 border-primary/20 focus:border-primary/50"
@@ -438,7 +528,7 @@ export default function SubmitCasePage() {
                   <Textarea 
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
-                    placeholder="Describe what you want security researchers to audit, the scope, and any important details..."
+                    placeholder="Describe the smart contract audit scope, what you want researchers to focus on, and any important security concerns..."
                     className="min-h-[120px] bg-background/50 border-primary/20 focus:border-primary/50"
                   />
                 </div>
@@ -456,7 +546,7 @@ export default function SubmitCasePage() {
                       className="bg-background/50 border-primary/20 focus:border-primary/50"
                     />
                     <p className="text-xs text-muted-foreground mt-1">
-                      Total reward pool for bounty hunters
+                      Total reward pool for security researchers
                     </p>
                   </div>
                   <div>
@@ -545,12 +635,84 @@ export default function SubmitCasePage() {
                     (Maximum 100%)
                   </p>
                 </div>
+
+                {/* Approvers Configuration */}
+                <div className="border-t border-border/30 pt-6">
+                  <h3 className="text-lg font-semibold mb-4">Approvers Configuration</h3>
+                  <p className="text-sm text-muted-foreground mb-4">
+                    Set the wallet addresses that will approve the bounty results.
+                  </p>
+                  
+                  <div className="space-y-3">
+                    {approvers.map((approver, index) => (
+                      <div key={index} className="flex gap-2">
+                        <Input 
+                          value={approver}
+                          onChange={(e) => updateApprover(index, e.target.value)}
+                          placeholder="0x..."
+                          className="bg-background/50 border-primary/20 focus:border-primary/50 flex-1"
+                        />
+                        {approvers.length > 1 && (
+                          <Button 
+                            type="button"
+                            variant="outline"
+                            size="icon"
+                            onClick={() => removeApprover(index)}
+                            className="border-red-500/30 hover:bg-red-500/10"
+                          >
+                            <X className="w-4 h-4" />
+                          </Button>
+                        )}
+                      </div>
+                    ))}
+                    
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={addApprover}
+                      className="w-full border-primary/30 hover:bg-primary/10"
+                    >
+                      <Plus className="w-4 h-4 mr-2" />
+                      Add Approver
+                    </Button>
+                  </div>
+
+                  <div className="mt-4">
+                    <label className="text-sm font-medium mb-2 block">
+                      Required Approvals <span className="text-red-500">*</span>
+                    </label>
+                    <Input 
+                      type="number"
+                      value={requiredApprovals}
+                      onChange={(e) => setRequiredApprovals(e.target.value)}
+                      placeholder="e.g., 2"
+                      min="1"
+                      max={approvers.filter(a => a.trim() !== "").length}
+                      className="bg-background/50 border-primary/20 focus:border-primary/50"
+                    />
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Number of approvers needed to validate results (max: {approvers.filter(a => a.trim() !== "").length})
+                    </p>
+                  </div>
+                </div>
               </>
             )}
 
-            {/* Web3 Website Hacking Fields */}
+            {/* Web3 Security Bounty Fields */}
             {activeTab === "web3-hacking" && (
               <>
+                <div>
+                  <label className="text-sm font-medium mb-2 block">
+                    Description <span className="text-red-500">*</span>
+                  </label>
+                  <Textarea 
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                    placeholder="Describe your Web3 application, what security aspects you want researchers to focus on, and any known concerns..."
+                    className="min-h-[120px] bg-background/50 border-primary/20 focus:border-primary/50"
+                  />
+                </div>
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="text-sm font-medium mb-2 block">
@@ -565,7 +727,7 @@ export default function SubmitCasePage() {
                   </div>
                   <div>
                     <label className="text-sm font-medium mb-2 block">
-                      DApp URL (if applicable)
+                      DApp URL
                     </label>
                     <Input 
                       value={dappUrl}
@@ -576,71 +738,193 @@ export default function SubmitCasePage() {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="text-sm font-medium mb-2 block">
-                      Exploit Type <span className="text-red-500">*</span>
-                    </label>
-                    <Select value={exploitType} onValueChange={setExploitType}>
-                      <SelectTrigger className="bg-background/50 border-primary/20">
-                        <SelectValue placeholder="Select type" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="xss">Cross-Site Scripting (XSS)</SelectItem>
-                        <SelectItem value="csrf">Cross-Site Request Forgery (CSRF)</SelectItem>
-                        <SelectItem value="sql-injection">SQL Injection</SelectItem>
-                        <SelectItem value="wallet-drainer">Wallet Drainer</SelectItem>
-                        <SelectItem value="phishing">Phishing Attack</SelectItem>
-                        <SelectItem value="session-hijacking">Session Hijacking</SelectItem>
-                        <SelectItem value="other">Other</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div>
-                    <label className="text-sm font-medium mb-2 block">
-                      Severity <span className="text-red-500">*</span>
-                    </label>
-                    <Select value={severity} onValueChange={setSeverity}>
-                      <SelectTrigger className="bg-background/50 border-primary/20">
-                        <SelectValue placeholder="Select severity" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="critical">Critical</SelectItem>
-                        <SelectItem value="high">High</SelectItem>
-                        <SelectItem value="medium">Medium</SelectItem>
-                        <SelectItem value="low">Low</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-
                 <div>
                   <label className="text-sm font-medium mb-2 block">
-                    Affected Components
+                    GitHub Repository (Optional)
                   </label>
                   <Input 
-                    value={affectedComponents}
-                    onChange={(e) => setAffectedComponents(e.target.value)}
-                    placeholder="e.g., Login page, Wallet connection, NFT marketplace"
+                    value={githubUrl}
+                    onChange={(e) => setGithubUrl(e.target.value)}
+                    placeholder="https://github.com/username/repo"
                     className="bg-background/50 border-primary/20 focus:border-primary/50"
                   />
                 </div>
 
                 <div>
                   <label className="text-sm font-medium mb-2 block">
-                    Detailed Description <span className="text-red-500">*</span>
+                    Target Scope <span className="text-red-500">*</span>
                   </label>
                   <Textarea 
-                    value={description}
-                    onChange={(e) => setDescription(e.target.value)}
-                    placeholder="Describe the exploit, how it works, potential impact, and proof of concept..."
-                    className="min-h-[150px] bg-background/50 border-primary/20 focus:border-primary/50"
+                    value={targetScope}
+                    onChange={(e) => setTargetScope(e.target.value)}
+                    placeholder="e.g., Wallet connection, Smart contract integration, User authentication, NFT marketplace, Payment system..."
+                    className="min-h-[80px] bg-background/50 border-primary/20 focus:border-primary/50"
                   />
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-sm font-medium mb-2 block">
+                      Lock Amount(USDCRIME) <span className="text-red-500">*</span>
+                    </label>
+                    <Input 
+                      type="number"
+                      value={lockAmount}
+                      onChange={(e) => setLockAmount(e.target.value)}
+                      placeholder="e.g., 15000"
+                      className="bg-background/50 border-primary/20 focus:border-primary/50"
+                    />
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Total reward pool
+                    </p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium mb-2 block">
+                      Deposit Amount (USDCRIME) <span className="text-red-500">*</span>
+                    </label>
+                    <Input 
+                      type="number"
+                      value={depositAmount}
+                      onChange={(e) => setDepositAmount(e.target.value)}
+                      placeholder="e.g., 7500"
+                      className="bg-background/50 border-primary/20 focus:border-primary/50"
+                    />
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Security deposit (refundable)
+                    </p>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="text-sm font-medium mb-2 block">
+                    Duration (Days) <span className="text-red-500">*</span>
+                  </label>
+                  <Input 
+                    type="number"
+                    value={durationDays}
+                    onChange={(e) => setDurationDays(e.target.value)}
+                    placeholder="e.g., 45"
+                    className="bg-background/50 border-primary/20 focus:border-primary/50"
+                  />
+                </div>
+
+                <div className="border-t border-border/30 pt-6">
+                  <h3 className="text-lg font-semibold mb-4">Reward Percentages by Severity</h3>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                      <label className="text-sm font-medium mb-2 block">
+                        Low Severity (%) <span className="text-red-500">*</span>
+                      </label>
+                      <Input 
+                        type="number"
+                        value={lowPct}
+                        onChange={(e) => setLowPct(e.target.value)}
+                        placeholder="e.g., 15"
+                        min="0"
+                        max="100"
+                        className="bg-background/50 border-primary/20 focus:border-primary/50"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium mb-2 block">
+                        Medium Severity (%) <span className="text-red-500">*</span>
+                      </label>
+                      <Input 
+                        type="number"
+                        value={mediumPct}
+                        onChange={(e) => setMediumPct(e.target.value)}
+                        placeholder="e.g., 30"
+                        min="0"
+                        max="100"
+                        className="bg-background/50 border-primary/20 focus:border-primary/50"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium mb-2 block">
+                        High Severity (%) <span className="text-red-500">*</span>
+                      </label>
+                      <Input 
+                        type="number"
+                        value={highPct}
+                        onChange={(e) => setHighPct(e.target.value)}
+                        placeholder="e.g., 60"
+                        min="0"
+                        max="100"
+                        className="bg-background/50 border-primary/20 focus:border-primary/50"
+                      />
+                    </div>
+                  </div>
+
+                  <p className="text-xs text-muted-foreground mt-3">
+                    Total: {(parseInt(lowPct || "0") + parseInt(mediumPct || "0") + parseInt(highPct || "0"))}% 
+                    (Maximum 100%)
+                  </p>
+                </div>
+
+                {/* Approvers Configuration */}
+                <div className="border-t border-border/30 pt-6">
+                  <h3 className="text-lg font-semibold mb-4">Approvers Configuration</h3>
+                  <p className="text-sm text-muted-foreground mb-4">
+                    Set the wallet addresses that will approve the bounty results.
+                  </p>
+                  
+                  <div className="space-y-3">
+                    {approvers.map((approver, index) => (
+                      <div key={index} className="flex gap-2">
+                        <Input 
+                          value={approver}
+                          onChange={(e) => updateApprover(index, e.target.value)}
+                          placeholder="0x..."
+                          className="bg-background/50 border-primary/20 focus:border-primary/50 flex-1"
+                        />
+                        {approvers.length > 1 && (
+                          <Button 
+                            type="button"
+                            variant="outline"
+                            size="icon"
+                            onClick={() => removeApprover(index)}
+                            className="border-red-500/30 hover:bg-red-500/10"
+                          >
+                            <X className="w-4 h-4" />
+                          </Button>
+                        )}
+                      </div>
+                    ))}
+                    
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={addApprover}
+                      className="w-full border-primary/30 hover:bg-primary/10"
+                    >
+                      <Plus className="w-4 h-4 mr-2" />
+                      Add Approver
+                    </Button>
+                  </div>
+
+                  <div className="mt-4">
+                    <label className="text-sm font-medium mb-2 block">
+                      Required Approvals <span className="text-red-500">*</span>
+                    </label>
+                    <Input 
+                      type="number"
+                      value={requiredApprovals}
+                      onChange={(e) => setRequiredApprovals(e.target.value)}
+                      placeholder="e.g., 2"
+                      min="1"
+                      max={approvers.filter(a => a.trim() !== "").length}
+                      className="bg-background/50 border-primary/20 focus:border-primary/50"
+                    />
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Number of approvers needed to validate results (max: {approvers.filter(a => a.trim() !== "").length})
+                    </p>
+                  </div>
                 </div>
               </>
             )}
 
-            {/* People Bounty Fields */}
+            {/* People Bounty Fields (Report Scammer) */}
             {activeTab === "people-bounty" && (
               <>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -721,7 +1005,7 @@ export default function SubmitCasePage() {
                       type="number"
                       value={estimatedLoss}
                       onChange={(e) => setEstimatedLoss(e.target.value)}
-                      placeholder="e.g., 50000"
+                      placeholder="e.g., 500000"
                       className="bg-background/50 border-primary/20 focus:border-primary/50"
                     />
                   </div>
@@ -733,7 +1017,7 @@ export default function SubmitCasePage() {
                       type="number"
                       value={numVictims}
                       onChange={(e) => setNumVictims(e.target.value)}
-                      placeholder="e.g., 100"
+                      placeholder="e.g., 150"
                       className="bg-background/50 border-primary/20 focus:border-primary/50"
                     />
                   </div>
@@ -762,62 +1046,56 @@ export default function SubmitCasePage() {
                     className="min-h-[150px] bg-background/50 border-primary/20 focus:border-primary/50"
                   />
                 </div>
+
+                <div>
+                  <label className="text-sm font-medium mb-2 block">
+                    Upload Evidence
+                  </label>
+                  <div className="border-2 border-dashed border-primary/30 rounded-lg p-8 text-center hover:border-primary/50 transition-colors cursor-pointer bg-background/50">
+                    <Upload className="w-8 h-8 mx-auto mb-2 text-muted-foreground" />
+                    <p className="text-sm text-muted-foreground mb-1">
+                      Click to upload or drag and drop
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      Screenshots, documents, videos, proof (Max 50MB total)
+                    </p>
+                  </div>
+                </div>
+
+                <div className="border-t border-border/30 pt-6">
+                  <h3 className="text-lg font-semibold mb-4">Contact Information (Optional)</h3>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="text-sm font-medium mb-2 block">
+                        Your Name
+                      </label>
+                      <Input 
+                        value={yourName}
+                        onChange={(e) => setYourName(e.target.value)}
+                        placeholder="Anonymous"
+                        className="bg-background/50 border-primary/20 focus:border-primary/50"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium mb-2 block">
+                        Email Address
+                      </label>
+                      <Input 
+                        type="email"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        placeholder="your@email.com"
+                        className="bg-background/50 border-primary/20 focus:border-primary/50"
+                      />
+                    </div>
+                  </div>
+
+                  <p className="text-xs text-muted-foreground mt-3">
+                    Providing contact information helps us follow up if we need additional details. All information is kept confidential.
+                  </p>
+                </div>
               </>
-            )}
-
-            {/* Evidence Upload (for non-smart-contract tabs) */}
-            {activeTab !== "smart-contract" && (
-              <div>
-                <label className="text-sm font-medium mb-2 block">
-                  Upload Evidence
-                </label>
-                <div className="border-2 border-dashed border-primary/30 rounded-lg p-8 text-center hover:border-primary/50 transition-colors cursor-pointer bg-background/50">
-                  <Upload className="w-8 h-8 mx-auto mb-2 text-muted-foreground" />
-                  <p className="text-sm text-muted-foreground mb-1">
-                    Click to upload or drag and drop
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    Screenshots, documents, videos, POC code (Max 50MB total)
-                  </p>
-                </div>
-              </div>
-            )}
-
-            {/* Contact Information (for non-smart-contract tabs) */}
-            {activeTab !== "smart-contract" && (
-              <div className="border-t border-border/30 pt-6 mt-6">
-                <h3 className="text-lg font-semibold mb-4">Contact Information (Optional)</h3>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="text-sm font-medium mb-2 block">
-                      Your Name
-                    </label>
-                    <Input 
-                      value={yourName}
-                      onChange={(e) => setYourName(e.target.value)}
-                      placeholder="Anonymous"
-                      className="bg-background/50 border-primary/20 focus:border-primary/50"
-                    />
-                  </div>
-                  <div>
-                    <label className="text-sm font-medium mb-2 block">
-                      Email Address
-                    </label>
-                    <Input 
-                      type="email"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      placeholder="your@email.com"
-                      className="bg-background/50 border-primary/20 focus:border-primary/50"
-                    />
-                  </div>
-                </div>
-
-                <p className="text-xs text-muted-foreground mt-3">
-                  Providing contact information helps us follow up if we need additional details. All information is kept confidential.
-                </p>
-              </div>
             )}
 
             {/* Confirmation */}
@@ -830,16 +1108,16 @@ export default function SubmitCasePage() {
                 className="mt-1 w-4 h-4 accent-primary cursor-pointer"
               />
               <label htmlFor="confirm-accuracy" className="text-sm text-muted-foreground cursor-pointer">
-                {activeTab === "smart-contract" 
-                  ? "I confirm that I have sufficient USDCRIME balance and understand that the total amount (lock + deposit) will be transferred to the bounty contract."
-                  : "I confirm that all information provided is accurate to the best of my knowledge. I understand that submitting false information may result in legal consequences."
+                {activeTab === "people-bounty" 
+                  ? "I confirm that all information provided is accurate to the best of my knowledge. I understand that submitting false information may result in legal consequences."
+                  : "I confirm that I have sufficient USDCRIME balance and understand that the total amount (lock + deposit) will be transferred to the bounty contract. Approvers will validate the bounty results."
                 } <span className="text-red-500">*</span>
               </label>
             </div>
 
             {/* Submit Button */}
             <div className="flex gap-3 pt-4">
-              {activeTab !== "smart-contract" && (
+              {activeTab === "people-bounty" && (
                 <Button 
                   variant="outline" 
                   className="flex-1 border-border/50"
@@ -848,11 +1126,11 @@ export default function SubmitCasePage() {
                 </Button>
               )}
               <Button 
-                onClick={activeTab === "smart-contract" ? handleApproveAndCreate : undefined}
-                disabled={activeTab === "smart-contract" ? (isBountyProcessing || !confirmed) : false}
+                onClick={activeTab !== "people-bounty" ? handleApproveAndCreate : undefined}
+                disabled={activeTab !== "people-bounty" ? (isBountyProcessing || !confirmed || !hasMinimumBalance) : false}
                 className="flex-1 bg-gradient-to-r from-primary to-secondary hover:opacity-90 text-white font-bold disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {activeTab === "smart-contract" ? (
+                {activeTab !== "people-bounty" ? (
                   <>
                     <Coins className="w-5 h-5 mr-2" />
                     {isApprovalPending || isApprovalConfirming ? 'Approving USDCRIME...' :
@@ -865,8 +1143,8 @@ export default function SubmitCasePage() {
               </Button>
             </div>
 
-            {/* Transaction Status (for smart contract) */}
-            {activeTab === "smart-contract" && isBountyProcessing && (
+            {/* Transaction Status (for bounty creation) */}
+            {activeTab !== "people-bounty" && isBountyProcessing && (
               <div className="text-center p-4 glass rounded-lg border border-primary/20">
                 <div className="flex items-center justify-center gap-2">
                   <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
@@ -886,12 +1164,12 @@ export default function SubmitCasePage() {
             <CardContent className="p-6 text-center">
               <Shield className="w-8 h-8 text-primary mx-auto mb-3" />
               <h3 className="font-semibold mb-2">
-                {activeTab === "smart-contract" ? "Secure & Transparent" : "Secure & Anonymous"}
+                {activeTab === "people-bounty" ? "Secure & Anonymous" : "Secure & Transparent"}
               </h3>
               <p className="text-sm text-muted-foreground">
-                {activeTab === "smart-contract" 
-                  ? "All funds are locked in smart contracts on-chain."
-                  : "Your identity is protected. Submit anonymously if you prefer."
+                {activeTab === "people-bounty" 
+                  ? "Your identity is protected. Submit anonymously if you prefer."
+                  : "All funds are locked in smart contracts on-chain."
                 }
               </p>
             </CardContent>
@@ -900,11 +1178,13 @@ export default function SubmitCasePage() {
           <Card className="glass border-border/50">
             <CardContent className="p-6 text-center">
               <FileText className="w-8 h-8 text-primary mx-auto mb-3" />
-              <h3 className="font-semibold mb-2">Expert Review</h3>
+              <h3 className="font-semibold mb-2">
+                {activeTab === "people-bounty" ? "Expert Review" : "Multisig Validation"}
+              </h3>
               <p className="text-sm text-muted-foreground">
-                {activeTab === "smart-contract"
-                  ? "Security experts will audit your smart contracts."
-                  : "Our team of security experts will review your submission."
+                {activeTab === "people-bounty"
+                  ? "Our team of security experts will review your submission."
+                  : "Approvers validate bounty results before reward distribution."
                 }
               </p>
             </CardContent>
@@ -912,20 +1192,20 @@ export default function SubmitCasePage() {
 
           <Card className="glass border-border/50">
             <CardContent className="p-6 text-center">
-              {activeTab === "smart-contract" ? (
-                <>
-                  <Coins className="w-8 h-8 text-primary mx-auto mb-3" />
-                  <h3 className="font-semibold mb-2">Fair Rewards</h3>
-                  <p className="text-sm text-muted-foreground">
-                    Researchers are rewarded based on severity of findings.
-                  </p>
-                </>
-              ) : (
+              {activeTab === "people-bounty" ? (
                 <>
                   <AlertCircle className="w-8 h-8 text-primary mx-auto mb-3" />
                   <h3 className="font-semibold mb-2">Community Impact</h3>
                   <p className="text-sm text-muted-foreground">
                     Help protect others from falling victim to similar attacks.
+                  </p>
+                </>
+              ) : (
+                <>
+                  <Coins className="w-8 h-8 text-primary mx-auto mb-3" />
+                  <h3 className="font-semibold mb-2">Fair Rewards</h3>
+                  <p className="text-sm text-muted-foreground">
+                    Researchers are rewarded based on severity of findings.
                   </p>
                 </>
               )}
