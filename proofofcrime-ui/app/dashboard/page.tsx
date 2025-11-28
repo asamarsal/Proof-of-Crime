@@ -5,85 +5,10 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
-import { Search, TrendingUp, Activity, AlertCircle, DollarSign, Clock, Users, Shield } from "lucide-react"
+import { Search, TrendingUp, Activity, AlertCircle, DollarSign, Clock, Users, Shield, Link } from "lucide-react"
+import { trendingCases } from "@/lib/data"
 
 export default function DashboardPage() {
-  // Mock Data for Trending Cases
-  const trendingCases = [
-    {
-      id: 1,
-      name: "SQUID Token",
-      type: "Rugpull",
-      risk: "Critical",
-      riskScore: 98,
-      totalAmount: "$3.3M",
-      walletsInvolved: "12.5k",
-      txVolume: "45.2k",
-      blockchain: "BSC",
-      description: "Play-to-earn game token that prevented selling, developers vanished with funds",
-    },
-    {
-      id: 2,
-      name: "SafeMoon V2",
-      type: "Pump & Dump",
-      risk: "High",
-      riskScore: 87,
-      totalAmount: "$1.2M",
-      walletsInvolved: "8.3k",
-      txVolume: "32.1k",
-      blockchain: "BSC",
-      description: "Coordinated pump and dump scheme targeting retail investors",
-    },
-    {
-      id: 3,
-      name: "Tornado Cash",
-      type: "Money Laundering",
-      risk: "High",
-      riskScore: 92,
-      totalAmount: "$100M+",
-      walletsInvolved: "50k+",
-      txVolume: "200k+",
-      blockchain: "Ethereum",
-      description: "Cryptocurrency mixer used for laundering stolen funds",
-    },
-    {
-      id: 4,
-      name: "Solana Monkey Business",
-      type: "NFT Scam",
-      risk: "Medium",
-      riskScore: 65,
-      totalAmount: "$500k",
-      walletsInvolved: "2.1k",
-      txVolume: "5.8k",
-      blockchain: "Solana",
-      description: "Fake NFT collection with plagiarized artwork",
-    },
-    {
-      id: 5,
-      name: "Tron Supernode",
-      type: "Phishing",
-      risk: "High",
-      riskScore: 78,
-      totalAmount: "$2M",
-      walletsInvolved: "5.6k",
-      txVolume: "18.9k",
-      blockchain: "Tron",
-      description: "Phishing campaign targeting Tron wallet users",
-    },
-    {
-      id: 6,
-      name: "AnubisDAO",
-      type: "Rugpull",
-      risk: "Critical",
-      riskScore: 95,
-      totalAmount: "$60M",
-      walletsInvolved: "15k",
-      txVolume: "25k",
-      blockchain: "Ethereum",
-      description: "DeFi protocol rugpull within 24 hours of launch",
-    },
-  ]
-
   // Mock Data for Live Feed
   const liveFeed = [
     { id: 1, address: "0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D", action: "Large Transfer", amount: "500 ETH", time: "2 mins ago", risk: "High", chain: "ETH" },
@@ -308,51 +233,53 @@ export default function DashboardPage() {
             </div>
             
             <div className="space-y-4">
-              {trendingCases.map((item) => (
-                <Card key={item.id} className="glass border-border/50 hover:border-primary/30 transition-all duration-300 group cursor-pointer">
-                  <CardContent className="p-6">
-                    <div className="flex items-start gap-4">
-                      {/* Risk Indicator */}
-                      <div className={`w-1.5 h-20 rounded-full ${getRiskColor(item.risk)} flex-shrink-0`} />
-                      
-                      {/* Content */}
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-start justify-between mb-2">
-                          <div>
-                            <h3 className="text-lg font-bold group-hover:text-primary transition-colors">{item.name}</h3>
-                            <div className="flex items-center gap-2 mt-1">
-                              <Badge variant="outline" className="text-xs border-primary/30 text-primary">{item.type}</Badge>
-                              <span className="text-xs text-muted-foreground">•</span>
-                              <span className="text-xs text-muted-foreground">{item.blockchain}</span>
+              {trendingCases.map((item: typeof trendingCases[number]) => (
+                <Link key={item.id} href={`/case/${item.id}`}>
+                  <Card className="glass border-border/50 hover:border-primary/30 transition-all duration-300 group cursor-pointer">
+                    <CardContent className="p-6">
+                      <div className="flex items-start gap-4">
+                        {/* Risk Indicator */}
+                        <div className={`w-1.5 h-20 rounded-full ${getRiskColor(item.risk)} flex-shrink-0`} />
+                        
+                        {/* Content */}
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-start justify-between mb-2">
+                            <div>
+                              <h3 className="text-lg font-bold group-hover:text-primary transition-colors">{item.name}</h3>
+                              <div className="flex items-center gap-2 mt-1">
+                                <Badge variant="outline" className="text-xs border-primary/30 text-primary">{item.type}</Badge>
+                                <span className="text-xs text-muted-foreground">•</span>
+                                <span className="text-xs text-muted-foreground">{item.blockchain}</span>
+                              </div>
+                            </div>
+                            <div className="text-right">
+                              <div className={`text-sm font-bold ${getRiskTextColor(item.risk)}`}>
+                                Risk Score: {item.riskScore}
+                              </div>
                             </div>
                           </div>
-                          <div className="text-right">
-                            <div className={`text-sm font-bold ${getRiskTextColor(item.risk)}`}>
-                              Risk Score: {item.riskScore}
+                          
+                          <p className="text-sm text-muted-foreground mb-3 line-clamp-2">{item.description}</p>
+                          
+                          <div className="grid grid-cols-3 gap-4 text-sm">
+                            <div>
+                              <div className="text-muted-foreground text-xs">Total Amount</div>
+                              <div className="font-bold text-foreground">{item.totalAmount}</div>
                             </div>
-                          </div>
-                        </div>
-                        
-                        <p className="text-sm text-muted-foreground mb-3 line-clamp-2">{item.description}</p>
-                        
-                        <div className="grid grid-cols-3 gap-4 text-sm">
-                          <div>
-                            <div className="text-muted-foreground text-xs">Total Amount</div>
-                            <div className="font-bold text-foreground">{item.totalAmount}</div>
-                          </div>
-                          <div>
-                            <div className="text-muted-foreground text-xs">Wallets</div>
-                            <div className="font-bold text-foreground">{item.walletsInvolved}</div>
-                          </div>
-                          <div>
-                            <div className="text-muted-foreground text-xs">Transactions</div>
-                            <div className="font-bold text-foreground">{item.txVolume}</div>
+                            <div>
+                              <div className="text-muted-foreground text-xs">Wallets</div>
+                              <div className="font-bold text-foreground">{item.walletsInvolved}</div>
+                            </div>
+                            <div>
+                              <div className="text-muted-foreground text-xs">Transactions</div>
+                              <div className="font-bold text-foreground">{item.txVolume}</div>
+                            </div>
                           </div>
                         </div>
                       </div>
-                    </div>
-                  </CardContent>
-                </Card>
+                    </CardContent>
+                  </Card>
+                </Link>
               ))}
             </div>
           </div>
