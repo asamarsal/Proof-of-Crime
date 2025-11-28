@@ -5,7 +5,8 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
-import { Search, TrendingUp, Activity, AlertCircle, DollarSign, Clock, Users, Shield, Link } from "lucide-react"
+import { Link as LinkIcon, Search, TrendingUp, Activity, AlertCircle, DollarSign, Clock, Users, Shield } from "lucide-react"
+import Link from "next/link"
 import { trendingCases } from "@/lib/data"
 
 export default function DashboardPage() {
@@ -235,7 +236,7 @@ export default function DashboardPage() {
             <div className="space-y-4">
               {trendingCases.map((item: typeof trendingCases[number]) => (
                 <Link key={item.id} href={`/case/${item.id}`}>
-                  <Card className="glass border-border/50 hover:border-primary/30 transition-all duration-300 group cursor-pointer">
+                  <Card className="glass border-border/50 hover:border-primary/30 transition-all duration-300 group cursor-pointer gap-6">
                     <CardContent className="p-6">
                       <div className="flex items-start gap-4">
                         {/* Risk Indicator */}
