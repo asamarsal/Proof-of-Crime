@@ -9,7 +9,9 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { AlertCircle, Upload, Shield, FileText, Sparkles, Coins } from "lucide-react"
-import { ethers } from "ethers"
+import { useAccount, useWriteContract, useWaitForTransactionReceipt } from "wagmi"
+import { usdcrimeAbi } from "@/app/abi/usdcrimeAbi"
+import { useEffect } from "react"
 
 export default function SubmitCasePage() {
   const [files, setFiles] = useState<File[]>([])
@@ -25,52 +27,46 @@ export default function SubmitCasePage() {
   const [yourName, setYourName] = useState("")
   const [email, setEmail] = useState("")
   const [confirmed, setConfirmed] = useState(false)
-  const [isClaimingFaucet, setIsClaimingFaucet] = useState(false)
 
-  const USDCRIME_CONTRACT_ADDRESS = "0x7898de8bB562B6e31C7A10FA3AE84AB036B1e9Cd"
-  const USDCRIME_ABI = [
-    "function claimFaucet() external returns (bool)",
-    "function balanceOf(address account) external view returns (uint256)",
-    "function name() external view returns (string)",
-    "function symbol() external view returns (string)"
-  ]
+  const USDCRIME_CONTRACT_ADDRESS = "0x7898de8bB562B6e31C7A10FA3AE84AB036B1e9Cd" as `0x${string}`
+  
+  const { address, isConnected } = useAccount()
+  const { data: hash, writeContract, isPending, error } = useWriteContract()
+  const { isLoading: isConfirming, isSuccess } = useWaitForTransactionReceipt({
+    hash,
+  })
+
+  useEffect(() => {
+    if (isSuccess) {
+      alert('Successfully claimed 1000 USDCRIME tokens!')
+    }
+  }, [isSuccess])
+
+  useEffect(() => {
+    if (error) {
+      console.error('Faucet claim error:', error)
+      alert('Failed to claim faucet: ' + (error.message || 'Unknown error'))
+    }
+  }, [error])
 
   const handleClaimFaucet = async () => {
+    if (!isConnected) {
+      alert('Please connect your wallet first!')
+      return
+    }
+
     try {
-      setIsClaimingFaucet(true)
-      
-      if (typeof window.ethereum === 'undefined') {
-        alert('Please install MetaMask or another Web3 wallet!')
-        return
-      }
-
-      const provider = new ethers.BrowserProvider(window.ethereum as any)
-      await provider.send("eth_requestAccounts", [])
-      const signer = await provider.getSigner()
-      
-      const contract = new ethers.Contract(
-        USDCRIME_CONTRACT_ADDRESS,
-        USDCRIME_ABI,
-        signer
-      )
-
-      const tx = await contract.claimFaucet()
-      await tx.wait()
-      
-      alert('Successfully claimed 1000 USDCRIME tokens!')
-    } catch (error: any) {
-      console.error('Faucet claim error:', error)
-      if (error.code === 'ACTION_REJECTED') {
-        alert('Transaction rejected by user')
-      } else if (error.message?.includes('faucet empty')) {
-        alert('Faucet is empty. Maximum supply reached.')
-      } else {
-        alert('Failed to claim faucet: ' + (error.message || 'Unknown error'))
-      }
-    } finally {
-      setIsClaimingFaucet(false)
+      writeContract({
+        address: USDCRIME_CONTRACT_ADDRESS,
+        abi: usdcrimeAbi,
+        functionName: 'claimFaucet',
+      })
+    } catch (err) {
+      console.error('Error initiating claim:', err)
     }
   }
+
+  const isClaimingFaucet = isPending || isConfirming
 
   const handleAutoFill = () => {
     setCaseTitle("SafeMoon V2 Rugpull Investigation")
