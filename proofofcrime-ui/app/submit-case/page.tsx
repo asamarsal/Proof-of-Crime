@@ -12,6 +12,7 @@ import { AlertCircle, Upload, Shield, FileText, Sparkles, Coins } from "lucide-r
 import { useAccount, useWriteContract, useWaitForTransactionReceipt } from "wagmi"
 import { usdcrimeAbi } from "@/app/abi/usdcrimeAbi"
 import { useEffect } from "react"
+import { liskSepolia } from "@/config"
 
 export default function SubmitCasePage() {
   const [files, setFiles] = useState<File[]>([])
@@ -45,7 +46,14 @@ export default function SubmitCasePage() {
   useEffect(() => {
     if (error) {
       console.error('Faucet claim error:', error)
-      alert('Failed to claim faucet: ' + (error.message || 'Unknown error'))
+      const message = error.message || 'Unknown error'
+      if (message.includes('User rejected') || message.includes('denied')) {
+        alert('Transaction rejected by user')
+      } else if (message.includes('network') || message.includes('chain')) {
+        alert('Please make sure you are connected to Lisk Sepolia network')
+      } else {
+        alert('Failed to claim faucet: ' + message)
+      }
     }
   }, [error])
 
@@ -60,6 +68,7 @@ export default function SubmitCasePage() {
         address: USDCRIME_CONTRACT_ADDRESS,
         abi: usdcrimeAbi,
         functionName: 'claimFaucet',
+        chainId: liskSepolia.id,
       })
     } catch (err) {
       console.error('Error initiating claim:', err)
