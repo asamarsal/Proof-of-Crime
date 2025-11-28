@@ -1,13 +1,16 @@
 "use client"
 
+import { useState } from "react"
 import Navigation from "@/components/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Shield, Clock, Users, ArrowRight, CheckCircle, Globe, AlertTriangle } from "lucide-react"
+import Web3HackingModal from "./Web3HackingModal"
 
 export default function Web3WebsiteHackingPage() {
+  const [selectedBounty, setSelectedBounty] = useState<number | null>(null)
   const bounties = [
     {
       id: 1,
@@ -150,7 +153,10 @@ export default function Web3WebsiteHackingPage() {
                     </div>
                   </CardContent>
                   <CardFooter>
-                    <Button className="w-full bg-primary/10 hover:bg-primary/20 text-primary border border-primary/50 group-hover:bg-primary group-hover:text-primary-foreground transition-all duration-300">
+                    <Button 
+                      onClick={() => setSelectedBounty(bounty.id)}
+                      className="w-full bg-primary/10 hover:bg-primary/20 text-primary border border-primary/50 group-hover:bg-primary group-hover:text-primary-foreground transition-all duration-300"
+                    >
                       Join Bounty <ArrowRight className="w-4 h-4 ml-2" />
                     </Button>
                   </CardFooter>
@@ -182,6 +188,15 @@ export default function Web3WebsiteHackingPage() {
           </div>
         </div>
       </main>
+
+      {/* Web3 Hacking Modal */}
+      {selectedBounty !== null && (
+        <Web3HackingModal
+          isOpen={selectedBounty !== null}
+          onClose={() => setSelectedBounty(null)}
+          bounty={bounties.find(b => b.id === selectedBounty)!}
+        />
+      )}
     </div>
   )
 }

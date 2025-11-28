@@ -1,13 +1,16 @@
 "use client"
 
+import { useState } from "react"
 import Navigation from "@/components/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Shield, Clock, Users, ArrowRight, CheckCircle } from "lucide-react"
+import BountyModal from "./BountyModal"
 
 export default function SmartContractAuditPage() {
+  const [selectedBounty, setSelectedBounty] = useState<number | null>(null)
   const bounties = [
     {
       id: 1,
@@ -126,7 +129,10 @@ export default function SmartContractAuditPage() {
                     </div>
                   </CardContent>
                   <CardFooter>
-                    <Button className="w-full bg-primary/10 hover:bg-primary/20 text-primary border border-primary/50 group-hover:bg-primary group-hover:text-primary-foreground transition-all duration-300">
+                    <Button 
+                      onClick={() => setSelectedBounty(bounty.id)}
+                      className="w-full bg-primary/10 hover:bg-primary/20 text-primary border border-primary/50 group-hover:bg-primary group-hover:text-primary-foreground transition-all duration-300"
+                    >
                       Join Bounty <ArrowRight className="w-4 h-4 ml-2" />
                     </Button>
                   </CardFooter>
@@ -158,6 +164,15 @@ export default function SmartContractAuditPage() {
           </div>
         </div>
       </main>
+
+      {/* Bounty Modal */}
+      {selectedBounty !== null && (
+        <BountyModal
+          isOpen={selectedBounty !== null}
+          onClose={() => setSelectedBounty(null)}
+          bounty={bounties.find(b => b.id === selectedBounty)!}
+        />
+      )}
     </div>
   )
 }

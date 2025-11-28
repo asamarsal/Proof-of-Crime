@@ -96,17 +96,7 @@ export default function SubmitCasePage() {
     <div className="min-h-screen bg-background text-foreground relative">
       <Navigation />
       
-      {/* Floating Claim Faucet Button */}
-      <div className="fixed top-24 right-6 z-40">
-        <button
-          onClick={handleClaimFaucet}
-          disabled={isClaimingFaucet}
-          className="px-5 py-3 rounded-lg bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white font-bold text-sm transition-all duration-300 flex items-center gap-2 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed neon-glow-green"
-        >
-          <Coins className="w-5 h-5" />
-          {isClaimingFaucet ? 'Claiming...' : 'Claim Faucet'}
-        </button>
-      </div>
+
       
       <main className="pt-24 pb-12 px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto">
         
@@ -115,6 +105,18 @@ export default function SubmitCasePage() {
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full glass border border-primary/30 mb-6">
             <Shield className="w-4 h-4 text-primary" />
             <span className="text-sm text-primary font-mono">SECURE SUBMISSION</span>
+          </div>
+          
+          {/* Claim Faucet Button */}
+          <div className="mb-6">
+            <Button
+              onClick={handleClaimFaucet}
+              disabled={isClaimingFaucet}
+              className="px-6 py-3 rounded-lg bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white font-bold transition-all duration-300 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <Coins className="w-5 h-5 mr-2" />
+              {isClaimingFaucet ? 'Claiming...' : 'Claim Faucet'}
+            </Button>
           </div>
           
           <h1 className="text-4xl md:text-5xl font-bold tracking-tight mb-4">
