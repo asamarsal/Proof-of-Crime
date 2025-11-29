@@ -63,3 +63,57 @@ Once deployed:
 
 - **Build Fails?** Ensure `pnpm-lock.yaml` is present in `proofofcrime-be/eliza-agent`.
 - **Agent not loading?** Check logs for "Character not found". Ensure `sniper.character.json` is in the correct path relative to the start command.
+
+---
+
+## Alternative: Deploy on Render
+
+Render is another great option with a free tier (though paid is recommended for AI bots).
+
+1.  **New Web Service:**
+    - Go to [Render Dashboard](https://dashboard.render.com).
+    - Click **"New +"** -> **"Web Service"**.
+    - Connect your GitHub repository.
+
+2.  **Configure:**
+    - **Root Directory:** `proofofcrime-be/eliza-agent`
+    - **Environment:** `Node`
+    - **Build Command:** `pnpm install && pnpm build`
+    - **Start Command:** `pnpm start --character="characters/sniper.character.json"`
+
+3.  **Environment Variables:**
+    - Add `OPENAI_API_KEY` and other secrets in the "Environment" tab.
+
+---
+
+## Alternative: Deploy on VPS (DigitalOcean, AWS, GCP)
+
+For full control and lower cost at scale, use a VPS.
+
+1.  **Connect to VPS:**
+    ```bash
+    ssh root@your-vps-ip
+    ```
+
+2.  **Install Dependencies:**
+    - Install Node.js (v23+), Pnpm, and Git.
+
+3.  **Clone & Setup:**
+    ```bash
+    git clone https://github.com/your-username/proofofcrime.git
+    cd proofofcrime/proofofcrime-be/eliza-agent
+    pnpm install
+    pnpm build
+    ```
+
+4.  **Run with PM2 (Process Manager):**
+    ```bash
+    npm install -g pm2
+    pm2 start "pnpm start --character='characters/sniper.character.json'" --name eliza-sniper
+    pm2 save
+    ```
+
+5.  **Expose Port:**
+    - Ensure port 3000 is open in your firewall.
+    - You can access via `http://your-vps-ip:3000`.
+
