@@ -31,6 +31,7 @@ export default function SmartContractAuditPage() {
   const [selectedBounty, setSelectedBounty] = useState<string | null>(null)
   const [bounties, setBounties] = useState<Bounty[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     fetchBounties()
@@ -38,12 +39,65 @@ export default function SmartContractAuditPage() {
 
   const fetchBounties = async () => {
     try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'
-      const response = await fetch(`${apiUrl}/api/bounties?category=SMART_CONTRACT_AUDIT`)
+      setLoading(true)
+      setError(null)
+      
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://proof-of-crime-dogq.onrender.com'
+      
+      const response = await fetch(`${apiUrl}/api/bounties?category=SMART_CONTRACT_AUDIT`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      })
+
+      if (!response.ok) {
+        throw new Error(`API Error: ${response.status} ${response.statusText}`)
+      }
+
       const data = await response.json()
-      setBounties(data)
+      console.log('Fetched bounties:', data)
+      
+      // Map data ke format yang sesuai
+      const formattedBounties = data.bounties?.map((bounty: any) => ({
+        id: bounty.id,
+        bountyId: `AUDIT-${bounty.id.slice(0, 8)}`,
+        title: bounty.title,
+        description: bounty.description,
+        category: bounty.category,
+        totalReward: bounty.totalReward || 0,
+        severity: bounty.severity || 'High',
+        status: bounty.status || 'active',
+        deadline: bounty.deadline,
+        company: {
+          name: bounty.company?.name || 'Unknown Company',
+          logo: bounty.company?.logo,
+        },
+        participants: bounty.participants || [],
+        scope: bounty.scope || 'Smart Contract Audit',
+      })) || []
+
+      setBounties(formattedBounties)
     } catch (error) {
       console.error('Error fetching bounties:', error)
+      setError(error instanceof Error ? error.message : 'Failed to fetch bounties')
+      // Fallback ke mock data jika API gagal
+      setBounties([
+        {
+          id: '1',
+          bountyId: 'AUDIT-001',
+          title: 'DeFi Protocol Security Audit',
+          description: 'Comprehensive security assessment of our DeFi lending protocol.',
+          category: 'SMART_CONTRACT_AUDIT',
+          totalReward: 150000,
+          severity: 'Critical',
+          status: 'active',
+          deadline: '2025-12-10',
+          company: { name: 'CryptoSwap DEX' },
+          participants: [],
+          scope: 'Smart Contract Audit',
+        },
+      ])
     } finally {
       setLoading(false)
     }
@@ -65,6 +119,16 @@ export default function SmartContractAuditPage() {
             Find critical vulnerabilities before they are exploited.
           </p>
         </div>
+
+        {/* Error Display */}
+        {error && (
+          <Card className="glass border-red-500/30 mb-8">
+            <CardContent className="p-4">
+              <p className="text-red-500 text-sm">⚠️ {error}</p>
+              <p className="text-xs text-muted-foreground mt-1">Showing fallback data. Check if Render API is running.</p>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Tabs and Content */}
         <Tabs defaultValue="active" className="w-full">
@@ -159,7 +223,7 @@ export default function SmartContractAuditPage() {
         {/* CTA Section */}
         <div className="mt-20 text-center">
           <div className="glass p-8 rounded-2xl border border-primary/20 max-w-3xl mx-auto relative overflow-hidden">
-            <div className="absolute inset-0 bg-gradient-to-r from-primary/5 via-transparent to-secondary/5" />
+            <div className="absolute inset-0 bg-linear-to-r from-primary/5 via-transparent to-secondary/5" />
             <h2 className="text-2xl font-bold mb-4 relative z-10">Need an Audit?</h2>
             <p className="text-muted-foreground mb-6 relative z-10">
               Ensure your protocol is secure before launch. Our community of top-tier security researchers is ready to help.
