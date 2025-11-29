@@ -152,9 +152,65 @@ export default function SubmitCasePage() {
   }, [isApprovalSuccess])
 
   useEffect(() => {
-    if (isBountySuccess) {
-      alert('Bounty created successfully!')
-      // Reset fields
+    const submitBountyToAPI = async () => {
+      if (!isBountySuccess || !bountyHash) return
+      
+      try {
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://proof-of-crime-dogq.onrender.com'
+        
+        // Calculate deadline date
+        const deadlineDate = new Date()
+        deadlineDate.setDate(deadlineDate.getDate() + parseInt(durationDays || '30'))
+        
+        // Prepare bounty data based on active tab
+        const bountyData = {
+          title: bountyTitle,
+          description: description,
+          category: activeTab === "smart-contract" ? "SMART_CONTRACT_AUDIT" : 
+                   activeTab === "web3-security" ? "WEB3_SECURITY" : "PEOPLE_BOUNTY",
+          totalReward: parseFloat(lockAmount),
+          rewardToken: "USDCRIME",
+          severity: "High",
+          status: "ACTIVE",
+          deadline: deadlineDate.toISOString(),
+          contractAddress: BOUNTY_CONTRACT_ADDRESS,
+          transactionHash: bountyHash,
+          company: {
+            name: address || "Anonymous",
+            website: websiteUrl || "",
+            github: githubUrl || "",
+          },
+          scope: activeTab === "smart-contract" ? "Smart Contract Audit" :
+                 activeTab === "web3-security" ? targetScope : 
+                 "People Bounty",
+          inScope: targetScope?.split(',').map(s => s.trim()) || [],
+          participants: [],
+        }
+        
+        console.log('Submitting bounty to API:', bountyData)
+        
+        const response = await fetch(`${apiUrl}/api/bounties`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(bountyData),
+        })
+        
+        if (!response.ok) {
+          throw new Error(`API Error: ${response.status}`)
+        }
+        
+        const result = await response.json()
+        console.log('Bounty submitted to API successfully:', result)
+        
+        alert(`Bounty created successfully!\nTransaction: ${bountyHash}\nYou can now view it on the Smart Contract Audit page.`)
+      } catch (error) {
+        console.error('Error submitting to API:', error)
+        alert(`Bounty created on blockchain but failed to save to database.\nTransaction: ${bountyHash}\nPlease contact support.`)
+      }
+      
+      // Reset form fields
       setBountyTitle("")
       setDescription("")
       setLockAmount("")
@@ -178,7 +234,9 @@ export default function SubmitCasePage() {
       setEvidenceLinks("")
       setConfirmed(false)
     }
-  }, [isBountySuccess])
+    
+    submitBountyToAPI()
+  }, [isBountySuccess, bountyHash])
 
   useEffect(() => {
     if (approvalError) {
