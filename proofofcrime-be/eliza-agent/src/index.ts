@@ -1,14 +1,19 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import dotenv from 'dotenv';
+import express, { Request, Response } from 'express';
 
 dotenv.config();
+
+const app = express();
+const port = process.env.PORT || 3000;
 
 console.log('Starting ElizaOS Agent...');
 
 // Parse command line arguments to get the character file
 const args = process.argv.slice(2);
 const characterArg = args.find(arg => arg.startsWith('--character='));
+let characterName = 'Unknown';
 
 if (characterArg) {
     const characterPath = characterArg.split('=')[1];
@@ -18,7 +23,8 @@ if (characterArg) {
         const fullPath = path.resolve(process.cwd(), characterPath);
         if (fs.existsSync(fullPath)) {
             const characterData = JSON.parse(fs.readFileSync(fullPath, 'utf-8'));
-            console.log(`Character loaded: ${characterData.name || 'Unknown'}`);
+            characterName = characterData.name || 'Unknown';
+            console.log(`Character loaded: ${characterName}`);
         } else {
             console.warn(`Character file not found at: ${fullPath}`);
         }
@@ -29,9 +35,23 @@ if (characterArg) {
     console.log('No character file specified.');
 }
 
-console.log('Agent is running. Press Ctrl+C to exit.');
+// Health check endpoint
+app.get('/', (req: Request, res: Response) => {
+    res.send('ElizaOS Agent is running!');
+});
 
-// Keep the process alive
-setInterval(() => {
-    // Heartbeat
-}, 10000);
+// Message endpoint (placeholder)
+app.post('/:agentId/message', (req: Request, res: Response) => {
+    const agentId = req.params.agentId;
+    console.log(`Received message for agent: ${agentId}`);
+    res.json({
+        user: 'user',
+        text: 'This is a placeholder response from the ElizaOS scaffold.',
+        action: 'NONE'
+    });
+});
+
+app.listen(port, () => {
+    console.log(`Server is running on port ${port}`);
+    console.log(`Agent '${characterName}' is ready.`);
+});
