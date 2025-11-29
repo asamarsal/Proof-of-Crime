@@ -4,7 +4,9 @@
   "description": "Proof of crime",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "echo \"Building root...\" && cd eliza-agent && npm install && npm run build",
+    "start": "cd eliza-agent && npm start"
   },
   "author": "",
   "license": "ISC",
