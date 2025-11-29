@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Navigation from "@/components/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
@@ -10,81 +10,47 @@ import { Shield, Clock, Users, ArrowRight, CheckCircle, Globe, AlertTriangle } f
 import Web3HackingModal from "./Web3HackingModal"
 
 export default function Web3WebsiteHackingPage() {
-  const [selectedBounty, setSelectedBounty] = useState<number | null>(null)
-  const bounties = [
-    {
-      id: 1,
-      title: "DeFi Exchange Platform Security Audit",
-      company: "CryptoSwap DEX",
-      description: "Comprehensive security assessment of our decentralized exchange platform including smart contract integration, wallet connection, and trading mechanisms.",
-      reward: "$100,000",
-      severity: "Critical",
-      scope: "Full Stack Web3 Application",
-      participants: 18,
-      deadline: "2025-12-10",
-      status: "active",
-    },
-    {
-      id: 2,
-      title: "NFT Marketplace Vulnerability Assessment",
-      company: "ArtChain Gallery",
-      description: "Security review of NFT minting, trading, and auction features. Focus on front-end vulnerabilities and Web3 wallet integration.",
-      reward: "$60,000",
-      severity: "High",
-      scope: "Web3 Frontend + Smart Contract Interface",
-      participants: 12,
-      deadline: "2025-11-28",
-      status: "active",
-    },
-    {
-      id: 3,
-      title: "DAO Governance Portal Security Review",
-      company: "DecentralGov",
-      description: "Audit of voting mechanisms, proposal systems, and treasury management interfaces for potential exploits.",
-      reward: "$125,000",
-      severity: "Critical",
-      scope: "Full Stack DApp",
-      participants: 22,
-      deadline: "2025-12-18",
-      status: "active",
-    },
-    {
-      id: 4,
-      title: "Crypto Wallet Web Interface Audit",
-      company: "SecureWallet",
-      description: "Security assessment of web-based wallet interface, focusing on key management, transaction signing, and phishing prevention.",
-      reward: "$80,000",
-      severity: "Critical",
-      scope: "Web3 Wallet Interface",
-      participants: 15,
-      deadline: "2025-12-05",
-      status: "active",
-    },
-    {
-      id: 5,
-      title: "Staking Platform Security Assessment",
-      company: "StakeEarn Protocol",
-      description: "Review of staking dashboard, reward calculation display, and withdrawal mechanisms for security flaws.",
-      reward: "$45,000",
-      severity: "Medium",
-      scope: "Web3 Dashboard",
-      participants: 8,
-      deadline: "2025-11-30",
-      status: "active",
-    },
-    {
-      id: 6,
-      title: "Cross-Chain Bridge Interface Audit",
-      company: "BridgeLink",
-      description: "Security review of cross-chain asset transfer interface, focusing on transaction validation and user fund protection.",
-      reward: "$150,000",
-      severity: "Critical",
-      scope: "Multi-Chain Web3 Application",
-      participants: 28,
-      deadline: "2025-12-22",
-      status: "active",
-    },
-  ]
+  const [selectedBounty, setSelectedBounty] = useState<string | number | null>(null)
+  const [bounties, setBounties] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    const fetchBounties = async () => {
+      try {
+        const response = await fetch('https://proof-of-crime-dogq.onrender.com/api/bounties?category=WEB3_WEBSITE_HACKING')
+        const data = await response.json()
+        if (data.bounties) {
+          const mappedBounties = data.bounties.map((b: any) => ({
+            id: b.id,
+            title: b.title,
+            company: b.company.name,
+            description: b.description,
+            reward: `$${parseInt(b.totalReward).toLocaleString()}`,
+            severity: b.severity.charAt(0).toUpperCase() + b.severity.slice(1).toLowerCase(),
+            scope: b.scope,
+            participants: b._count.participants,
+            deadline: new Date(b.deadline).toISOString().split('T')[0],
+            status: b.status.toLowerCase(),
+          }))
+          setBounties(mappedBounties)
+        }
+      } catch (error) {
+        console.error('Error fetching bounties:', error)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchBounties()
+  }, [])
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background text-foreground flex items-center justify-center">
+        <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-primary"></div>
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen bg-background text-foreground selection:bg-primary/20">

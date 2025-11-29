@@ -88,8 +88,10 @@ async function main() {
     console.log('✅ Users created')
 
     // Create bounties
-    const bounty1 = await prisma.bounty.create({
-        data: {
+    const bounty1 = await prisma.bounty.upsert({
+        where: { bountyId: 'SC-0001' },
+        update: {},
+        create: {
             bountyId: 'SC-0001',
             title: 'Critical Smart Contract Audit - DeFi Lending Pool',
             description:
@@ -150,8 +152,10 @@ async function main() {
         },
     })
 
-    const bounty2 = await prisma.bounty.create({
-        data: {
+    const bounty2 = await prisma.bounty.upsert({
+        where: { bountyId: 'WEB3-0001' },
+        update: {},
+        create: {
             bountyId: 'WEB3-0001',
             title: 'NFT Marketplace Web3 Security Audit',
             description:
@@ -192,8 +196,10 @@ async function main() {
         },
     })
 
-    const bounty3 = await prisma.bounty.create({
-        data: {
+    const bounty3 = await prisma.bounty.upsert({
+        where: { bountyId: 'PEOPLE-0001' },
+        update: {},
+        create: {
             bountyId: 'PEOPLE-0001',
             title: 'Wanted: CryptoScammer - Multi-Chain Rugpull Suspect',
             description:
@@ -241,20 +247,182 @@ async function main() {
         },
     })
 
+    const bounty4 = await prisma.bounty.upsert({
+        where: { bountyId: 'SC-0002' },
+        update: {},
+        create: {
+            bountyId: 'SC-0002',
+            title: 'Bridge Security Audit - Cross-Chain Protocol',
+            description:
+                'We need thorough security review of our cross-chain bridge implementation. Focus on signature verification, token locking mechanisms, and replay attacks.',
+            category: 'SMART_CONTRACT_AUDIT',
+            companyId: company1.id,
+            totalReward: 75000,
+            rewardToken: 'USDC',
+            severity: 'CRITICAL',
+            status: 'ACTIVE',
+            deadline: new Date('2026-01-15'),
+            scope: 'BridgeRouter.sol, TokenLocker.sol, SignatureValidator.sol, ChainRelayer.sol',
+            inScope: [
+                'Signature validation bypasses',
+                'Replay attack vectors',
+                'Token locking escrow issues',
+                'Cross-chain state consistency',
+                'Validator collusion attacks',
+            ],
+            outOfScope: [
+                'Relayer node infrastructure',
+                'Governance mechanisms',
+                'Frontend integration',
+            ],
+            techStack: [
+                'Solidity 0.8.20',
+                'Hardhat',
+                'OpenZeppelin Upgrades',
+                'ECDSA Signatures',
+            ],
+            securityFocus: 'Focus on bridge security, signature schemes, and cross-chain atomicity',
+            rewardBreakdown: {
+                create: [
+                    {
+                        severity: 'CRITICAL',
+                        amount: 35000,
+                        description: 'Critical bridge vulnerabilities',
+                    },
+                    { severity: 'HIGH', amount: 20000, description: 'High severity findings' },
+                    { severity: 'MEDIUM', amount: 12000, description: 'Medium severity issues' },
+                    { severity: 'LOW', amount: 3000, description: 'Low severity findings' },
+                ],
+            },
+            rules: {
+                create: [
+                    {
+                        ruleNumber: 1,
+                        ruleText: 'Test only on testnets (Goerli, Sepolia, Mumbai)',
+                    },
+                    {
+                        ruleNumber: 2,
+                        ruleText: 'Provide detailed write-up with mathematical proof of vulnerability',
+                    },
+                    {
+                        ruleNumber: 3,
+                        ruleText: 'Do not disclose findings until patch is deployed',
+                    },
+                    {
+                        ruleNumber: 4,
+                        ruleText: 'Previous bridge audits cannot be resubmitted',
+                    },
+                ],
+            },
+        },
+    })
+
+    const bounty5 = await prisma.bounty.upsert({
+        where: { bountyId: 'SC-0003' },
+        update: {},
+        create: {
+            bountyId: 'SC-0003',
+            title: 'Staking Protocol Security Audit - Liquid Staking Derivatives',
+            description:
+                'Comprehensive audit needed for our liquid staking protocol. Focus on staking rewards distribution, slashing mechanisms, and stake delegation logic.',
+            category: 'SMART_CONTRACT_AUDIT',
+            companyId: company2.id,
+            totalReward: 60000,
+            rewardToken: 'USDC',
+            severity: 'HIGH',
+            status: 'ACTIVE',
+            deadline: new Date('2026-02-01'),
+            scope: 'StakingPool.sol, RewardsDistributor.sol, SlashingManager.sol, LST.sol',
+            inScope: [
+                'Reward calculation precision',
+                'Slashing condition manipulation',
+                'Delegation logic flaws',
+                'Token minting/burning vulnerabilities',
+                'Validator set management',
+            ],
+            outOfScope: [
+                'Beacon chain integration',
+                'Off-chain oracle data',
+                'UI/UX issues',
+            ],
+            techStack: [
+                'Solidity 0.8.19',
+                'Foundry',
+                'OpenZeppelin',
+                'Compound Governance',
+            ],
+            securityFocus: 'Staking security, reward fairness, and slashing mechanism integrity',
+            rewardBreakdown: {
+                create: [
+                    {
+                        severity: 'CRITICAL',
+                        amount: 25000,
+                        description: 'Critical staking vulnerabilities',
+                    },
+                    { severity: 'HIGH', amount: 15000, description: 'High severity findings' },
+                    {
+                        severity: 'MEDIUM',
+                        amount: 12000,
+                        description: 'Medium severity issues',
+                    },
+                    { severity: 'LOW', amount: 3000, description: 'Low severity findings' },
+                ],
+            },
+            rules: {
+                create: [
+                    {
+                        ruleNumber: 1,
+                        ruleText: 'Provide Foundry test cases demonstrating vulnerability',
+                    },
+                    {
+                        ruleNumber: 2,
+                        ruleText: 'Include impact analysis on protocol solvency',
+                    },
+                    {
+                        ruleNumber: 3,
+                        ruleText: 'Timing attacks and sandwich attacks in scope',
+                    },
+                    {
+                        ruleNumber: 4,
+                        ruleText: 'Follow responsible disclosure for 30 days',
+                    },
+                ],
+            },
+        },
+    })
+
     console.log('✅ Bounties created')
 
     // Add participants to bounties
-    await prisma.bountyParticipant.create({
-        data: { bountyId: bounty1.id, userId: user1.id },
+    await prisma.bountyParticipant.upsert({
+        where: { bountyId_userId: { bountyId: bounty1.id, userId: user1.id } },
+        update: {},
+        create: { bountyId: bounty1.id, userId: user1.id },
     })
-    await prisma.bountyParticipant.create({
-        data: { bountyId: bounty1.id, userId: user2.id },
+    await prisma.bountyParticipant.upsert({
+        where: { bountyId_userId: { bountyId: bounty1.id, userId: user2.id } },
+        update: {},
+        create: { bountyId: bounty1.id, userId: user2.id },
     })
-    await prisma.bountyParticipant.create({
-        data: { bountyId: bounty2.id, userId: user1.id },
+    await prisma.bountyParticipant.upsert({
+        where: { bountyId_userId: { bountyId: bounty2.id, userId: user1.id } },
+        update: {},
+        create: { bountyId: bounty2.id, userId: user1.id },
     })
-    await prisma.bountyParticipant.create({
-        data: { bountyId: bounty3.id, userId: user3.id },
+    await prisma.bountyParticipant.upsert({
+        where: { bountyId_userId: { bountyId: bounty3.id, userId: user3.id } },
+        update: {},
+        create: { bountyId: bounty3.id, userId: user3.id },
+    })
+    await prisma.bountyParticipant.upsert({
+        where: { bountyId_userId: { bountyId: bounty4.id, userId: user2.id } },
+        update: {},
+        create: { bountyId: bounty4.id, userId: user2.id },
+    })
+    await prisma.bountyParticipant.upsert({
+        where: { bountyId_userId: { bountyId: bounty5.id, userId: user1.id } },
+        update: {},
+        create: { bountyId: bounty5.id, userId: user1.id },
     })
 
     console.log('✅ Bounty participants added')
@@ -385,10 +553,10 @@ async function main() {
         create: {
             date: new Date('2025-11-29'),
             totalCases: 3,
-            totalBounties: 3,
+            totalBounties: 5,
             totalRewardsDistributed: 20000,
             totalUsers: 3,
-            activeBounties: 3,
+            activeBounties: 5,
         },
     })
 

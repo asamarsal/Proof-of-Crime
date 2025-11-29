@@ -8,7 +8,7 @@ interface Web3HackingModalProps {
   isOpen: boolean
   onClose: () => void
   bounty: {
-    id: number
+    id: string | number
     title: string
     company: string
     description: string
