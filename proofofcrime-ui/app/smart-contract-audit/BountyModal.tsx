@@ -5,6 +5,10 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import Image from "next/image"
 import { useRouter } from "next/navigation"
+import { useAccount, useWriteContract, useWaitForTransactionReceipt } from "wagmi"
+import { smartcontractbountyAbi } from "@/app/abi/smartcontractbountyAbi"
+import { liskSepolia } from "@/config"
+import { useState } from "react"
 
 interface BountyModalProps {
   isOpen: boolean
@@ -35,6 +39,23 @@ interface BountyModalProps {
 
 
 export default function BountyModal({ isOpen, onClose, bounty }: BountyModalProps) {
+  const { isConnected } = useAccount()
+  const [isJoining, setIsJoining] = useState(false)
+  const router = useRouter()
+  
+  const BOUNTY_CONTRACT_ADDRESS = "0xF439FbFC5a1BF5B70D87E6680b83F2328cF69279"
+
+  // Write contract hook for joinBounty
+  const { 
+    data: joinHash, 
+    writeContract: writeJoinBounty,
+    isPending: isJoinPending 
+  } = useWriteContract()
+
+  // Wait for transaction
+  const { isLoading: isJoinConfirming, isSuccess: isJoinSuccess } = 
+    useWaitForTransactionReceipt({ hash: joinHash })
+
   if (!isOpen || !bounty) return null
 
   // Company details from API or use defaults
@@ -90,12 +111,35 @@ export default function BountyModal({ isOpen, onClose, bounty }: BountyModalProp
     "Final reward amounts are subject to severity assessment by the security team"
   ]
 
-  const router = useRouter()
+  const handleJoinBounty = async () => {
+    if (!isConnected) {
+      alert("Please connect your wallet first!")
+      return
+    }
 
-  const handleJoinBounty = () => {
-    onClose()
-    // Redirect to submit-case with bounty details
-    router.push(`/submit-case?bountyId=${bounty.id}&bountyTitle=${encodeURIComponent(bounty.title)}&company=${encodeURIComponent(bounty.company.name)}`)
+    try {
+      setIsJoining(true)
+      // Extract numeric bountyId from the id (e.g., "AUDIT-001" -> 1)
+      const bountyIdNum = parseInt(bounty.id) || 1
+      
+      writeJoinBounty({
+        address: BOUNTY_CONTRACT_ADDRESS,
+        abi: smartcontractbountyAbi,
+        functionName: 'joinBounty',
+        args: [BigInt(bountyIdNum)],
+        chainId: liskSepolia.id,
+      })
+    } catch (err) {
+      console.error('Error joining bounty:', err)
+      alert('Failed to join bounty: ' + (err as any).message)
+      setIsJoining(false)
+    }
+  }
+
+  // Reset joining state when transaction succeeds
+  if (isJoinSuccess && isJoining) {
+    setIsJoining(false)
+    alert("Successfully joined bounty! You can now submit your findings.")
   }
 
   return (
@@ -342,9 +386,14 @@ export default function BountyModal({ isOpen, onClose, bounty }: BountyModalProp
             </Button>
             <Button
               onClick={handleJoinBounty}
-              className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold shadow-lg shadow-primary/20 hover:shadow-primary/30 transition-all"
+              disabled={!isConnected || isJoinPending || isJoinConfirming}
+              className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold shadow-lg shadow-primary/20 hover:shadow-primary/30 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Join Bounty Now
+              {!isConnected 
+                ? "Connect Wallet to Join" 
+                : isJoinPending || isJoinConfirming 
+                  ? "Joining Bounty..." 
+                  : "Join Bounty Now"}
             </Button>
           </div>
         </div>
