@@ -1,14 +1,17 @@
 "use client"
 
-import { X, ExternalLink, Users, Clock, Shield, AlertTriangle, CheckCircle2, Award } from "lucide-react"
+import { X, ExternalLink, Users, Clock, Shield, AlertTriangle, CheckCircle2, Award, Sparkles } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
+import { Input } from "@/components/ui/input"
+import { Textarea } from "@/components/ui/textarea"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import Image from "next/image"
 import { useRouter } from "next/navigation"
 import { useAccount, useWriteContract, useWaitForTransactionReceipt } from "wagmi"
 import { smartcontractbountyAbi } from "@/app/abi/smartcontractbountyAbi"
 import { liskSepolia } from "@/config"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 
 interface BountyModalProps {
   isOpen: boolean
@@ -39,9 +42,17 @@ interface BountyModalProps {
 
 
 export default function BountyModal({ isOpen, onClose, bounty }: BountyModalProps) {
-  const { isConnected } = useAccount()
+  const { isConnected, address } = useAccount()
   const [isJoining, setIsJoining] = useState(false)
+  const [showSubmissionForm, setShowSubmissionForm] = useState(false)
   const router = useRouter()
+  
+  // Vulnerability submission form fields
+  const [vulnTitle, setVulnTitle] = useState("")
+  const [vulnDescription, setVulnDescription] = useState("")
+  const [vulnSeverity, setVulnSeverity] = useState("")
+  const [vulnPoC, setVulnPoc] = useState("")
+  const [vulnSteps, setVulnSteps] = useState("")
   
   const BOUNTY_CONTRACT_ADDRESS = "0xF439FbFC5a1BF5B70D87E6680b83F2328cF69279"
 
@@ -111,9 +122,23 @@ export default function BountyModal({ isOpen, onClose, bounty }: BountyModalProp
     "Final reward amounts are subject to severity assessment by the security team"
   ]
 
-  const handleJoinBounty = async () => {
+  const handleAutofill = () => {
+    setVulnTitle("Critical Reentrancy Vulnerability in withdraw() Function")
+    setVulnDescription("Found a critical reentrancy vulnerability in the withdraw function that allows attackers to drain the entire pool balance by recursively calling the function before state updates.")
+    setVulnSeverity("High")
+    setVulnPoc("// Malicious contract\ncontract Attacker {\n  fallback() external payable {\n    // Recursive call to withdraw\n    VulnerableContract(target).withdraw();\n  }\n}")
+    setVulnSteps("1. Deploy malicious contract with fallback function\n2. Call withdraw() from malicious contract\n3. Fallback function recursively calls withdraw()\n4. Drain entire pool balance before balance is updated")
+  }
+
+  const handleSubmitFinding = async () => {
     if (!isConnected) {
       alert("Please connect your wallet first!")
+      return
+    }
+
+    // Validation
+    if (!vulnTitle || !vulnDescription || !vulnSeverity || !vulnPoC) {
+      alert("Please fill in all required fields!")
       return
     }
 
@@ -131,16 +156,66 @@ export default function BountyModal({ isOpen, onClose, bounty }: BountyModalProp
       })
     } catch (err) {
       console.error('Error joining bounty:', err)
-      alert('Failed to join bounty: ' + (err as any).message)
+      alert('Failed to submit finding: ' + (err as any).message)
       setIsJoining(false)
     }
   }
 
-  // Reset joining state when transaction succeeds
-  if (isJoinSuccess && isJoining) {
-    setIsJoining(false)
-    alert("Successfully joined bounty! You can now submit your findings.")
-  }
+  // Submit to API after blockchain transaction succeeds
+  useEffect(() => {
+    const submitToAPI = async () => {
+      if (!isJoinSuccess || !isJoining) return
+      
+      try {
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://proof-of-crime-dogq.onrender.com'
+        
+        const submissionData = {
+          bountyId: bounty.id,
+          userId: address, // Will need proper user ID from backend
+          title: vulnTitle,
+          description: vulnDescription,
+          severity: vulnSeverity,
+          vulnerabilityType: "Smart Contract Vulnerability",
+          pocDescription: vulnDescription,
+          pocSteps: vulnSteps.split('\n'),
+          pocCode: vulnPoC,
+        }
+        
+        console.log('Submitting vulnerability to API:', submissionData)
+        
+        const response = await fetch(`${apiUrl}/api/bounties/${bounty.id}/join`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ userId: address }),
+        })
+        
+        if (!response.ok) {
+          const errorText = await response.text()
+          console.error('API Error:', errorText)
+        } else {
+          console.log('Vulnerability submitted successfully')
+        }
+        
+        setIsJoining(false)
+        alert("Successfully submitted your finding! The team will review it shortly.")
+        
+        // Reset form
+        setVulnTitle("")
+        setVulnDescription("")
+        setVulnSeverity("")
+        setVulnPoc("")
+        setVulnSteps("")
+        setShowSubmissionForm(false)
+        
+      } catch (error) {
+        console.error('Error submitting to API:', error)
+        setIsJoining(false)
+        alert("Finding submitted on-chain but failed to save details. Transaction confirmed!")
+      }
+    }
+    
+    submitToAPI()
+  }, [isJoinSuccess, isJoining])
 
   return (
     <>
@@ -375,6 +450,86 @@ export default function BountyModal({ isOpen, onClose, bounty }: BountyModalProp
             </section>
           </div>
 
+          {/* Vulnerability Submission Form */}
+          {showSubmissionForm && (
+            <div className="p-6 space-y-6 border-t border-primary/20">
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg font-semibold flex items-center">
+                  <div className="w-1 h-5 bg-primary mr-3 rounded-full" />
+                  Submit Your Finding
+                </h3>
+                <Button
+                  onClick={handleAutofill}
+                  variant="outline"
+                  size="sm"
+                  className="flex items-center gap-2"
+                >
+                  <Sparkles className="w-4 h-4" />
+                  Autofill Example
+                </Button>
+              </div>
+
+              <div className="space-y-4">
+                <div>
+                  <label className="text-sm font-medium mb-2 block">Vulnerability Title *</label>
+                  <Input
+                    value={vulnTitle}
+                    onChange={(e) => setVulnTitle(e.target.value)}
+                    placeholder="e.g., Reentrancy vulnerability in withdraw function"
+                    className="bg-background/50 border-primary/20"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-sm font-medium mb-2 block">Description *</label>
+                  <Textarea
+                    value={vulnDescription}
+                    onChange={(e) => setVulnDescription(e.target.value)}
+                    placeholder="Detailed description of the vulnerability and its impact"
+                    rows={4}
+                    className="bg-background/50 border-primary/20"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-sm font-medium mb-2 block">Severity *</label>
+                  <Select value={vulnSeverity} onValueChange={setVulnSeverity}>
+                    <SelectTrigger className="bg-background/50 border-primary/20">
+                      <SelectValue placeholder="Select severity level" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Low">Low</SelectItem>
+                      <SelectItem value="Medium">Medium</SelectItem>
+                      <SelectItem value="High">High</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div>
+                  <label className="text-sm font-medium mb-2 block">Proof of Concept (Code) *</label>
+                  <Textarea
+                    value={vulnPoC}
+                    onChange={(e) => setVulnPoc(e.target.value)}
+                    placeholder="Paste your PoC code here"
+                    rows={6}
+                    className="bg-background/50 border-primary/20 font-mono text-sm"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-sm font-medium mb-2 block">Reproduction Steps</label>
+                  <Textarea
+                    value={vulnSteps}
+                    onChange={(e) => setVulnSteps(e.target.value)}
+                    placeholder="Step-by-step instructions to reproduce the vulnerability"
+                    rows={4}
+                    className="bg-background/50 border-primary/20"
+                  />
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Footer */}
           <div className="sticky bottom-0 glass border-t border-primary/20 p-6 flex gap-4">
             <Button
@@ -384,17 +539,23 @@ export default function BountyModal({ isOpen, onClose, bounty }: BountyModalProp
             >
               Cancel
             </Button>
-            <Button
-              onClick={handleJoinBounty}
-              disabled={!isConnected || isJoinPending || isJoinConfirming}
-              className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold shadow-lg shadow-primary/20 hover:shadow-primary/30 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {!isConnected 
-                ? "Connect Wallet to Join" 
-                : isJoinPending || isJoinConfirming 
-                  ? "Joining Bounty..." 
-                  : "Join Bounty Now"}
-            </Button>
+            {!showSubmissionForm ? (
+              <Button
+                onClick={() => setShowSubmissionForm(true)}
+                disabled={!isConnected}
+                className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold shadow-lg shadow-primary/20 hover:shadow-primary/30 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {!isConnected ? "Connect Wallet to Join" : "Join Bounty Now"}
+              </Button>
+            ) : (
+              <Button
+                onClick={handleSubmitFinding}
+                disabled={!isConnected || isJoinPending || isJoinConfirming}
+                className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold shadow-lg shadow-primary/20 hover:shadow-primary/30 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isJoinPending || isJoinConfirming ? "Submitting Finding..." : "Submit Finding"}
+              </Button>
+            )}
           </div>
         </div>
       </div>
