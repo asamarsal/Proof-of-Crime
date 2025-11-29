@@ -82,7 +82,13 @@ app.use(errorHandler)
 export default app
 
 // Start server if running directly
-if (require.main === module) {
+import { fileURLToPath } from 'url'
+import path from 'path'
+
+const __filename = fileURLToPath(import.meta.url)
+const entryFile = process.argv[1]
+
+if (entryFile === __filename || entryFile.endsWith(path.basename(__filename))) {
     const server = app.listen(PORT, async () => {
         console.log(`🚀 Server running on port ${PORT}`)
         console.log(`📊 Environment: ${process.env.NODE_ENV || 'development'}`)
