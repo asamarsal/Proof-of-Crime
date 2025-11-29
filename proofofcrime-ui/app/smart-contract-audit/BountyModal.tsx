@@ -16,6 +16,7 @@ import { useState, useEffect } from "react"
 interface BountyModalProps {
   isOpen: boolean
   onClose: () => void
+  onBountyJoined?: (bountyId: string) => void
   bounty?: {
     id: string
     bountyId: string
@@ -41,7 +42,7 @@ interface BountyModalProps {
 }
 
 
-export default function BountyModal({ isOpen, onClose, bounty }: BountyModalProps) {
+export default function BountyModal({ isOpen, onClose, bounty, onBountyJoined }: BountyModalProps) {
   const { isConnected, address } = useAccount()
   const [isJoining, setIsJoining] = useState(false)
   const [showSubmissionForm, setShowSubmissionForm] = useState(false)
@@ -188,27 +189,6 @@ export default function BountyModal({ isOpen, onClose, bounty }: BountyModalProp
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ userId: address }),
         })
-        
-        if (!response.ok) {
-          const errorText = await response.text()
-          console.error('API Error:', errorText)
-        } else {
-          console.log('Vulnerability submitted successfully')
-        }
-        
-        setIsJoining(false)
-        alert("Successfully submitted your finding! The team will review it shortly.")
-        
-        // Reset form
-        setVulnTitle("")
-        setVulnDescription("")
-        setVulnSeverity("")
-        setVulnPoc("")
-        setVulnSteps("")
-        setShowSubmissionForm(false)
-        
-      } catch (error) {
-        console.error('Error submitting to API:', error)
         setIsJoining(false)
         alert("Finding submitted on-chain but failed to save details. Transaction confirmed!")
       }

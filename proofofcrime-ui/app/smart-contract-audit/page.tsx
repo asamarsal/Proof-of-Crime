@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Shield, Clock, Users, ArrowRight, CheckCircle } from "lucide-react"
 import BountyModal from "./BountyModal"
+import { useAccount } from "wagmi"
 
 interface Bounty {
   id: string
@@ -28,10 +29,22 @@ interface Bounty {
 }
 
 export default function SmartContractAuditPage() {
+  const { address } = useAccount()
   const [selectedBounty, setSelectedBounty] = useState<string | null>(null)
   const [bounties, setBounties] = useState<Bounty[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [joinedBounties, setJoinedBounties] = useState<Set<string>>(new Set())
+
+  // Load joined bounties from localStorage on mount
+  useEffect(() => {
+    if (address) {
+      const savedJoined = localStorage.getItem(`joinedBounties_${address}`)
+      if (savedJoined) {
+        setJoinedBounties(new Set(JSON.parse(savedJoined)))
+      }
+    }
+  }, [address])
 
   useEffect(() => {
     fetchBounties()
@@ -103,6 +116,18 @@ export default function SmartContractAuditPage() {
     }
   }
 
+  // Handle successful bounty join
+  const handleBountyJoined = (bountyId: string) => {
+    if (!address) return
+    
+    const updated = new Set(joinedBounties)
+    updated.add(bountyId)
+    setJoinedBounties(updated)
+    
+    // Save to localStorage
+    localStorage.setItem(`joinedBounties_${address}`, JSON.stringify(Array.from(updated)))
+  }
+
   return (
     <div className="min-h-screen bg-background text-foreground selection:bg-primary/20">
       <Navigation />
@@ -169,6 +194,12 @@ export default function SmartContractAuditPage() {
                         <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20">
                           {bounty.company.name}
                         </Badge>
+                        {joinedBounties.has(bounty.id) && (
+                          <Badge variant="outline" className="bg-green-500/10 text-green-500 border-green-500/20 flex items-center gap-1">
+                            <CheckCircle className="w-3 h-3" />
+                            Already Joined
+                          </Badge>
+                        )}
                       </div>
                       <CardTitle className="text-xl group-hover:text-primary transition-colors">
                         {bounty.title}
@@ -241,6 +272,7 @@ export default function SmartContractAuditPage() {
           isOpen={selectedBounty !== null}
           onClose={() => setSelectedBounty(null)}
           bounty={bounties.find(b => b.id === selectedBounty)}
+          onBountyJoined={handleBountyJoined}
         />
       )}
     </div>
