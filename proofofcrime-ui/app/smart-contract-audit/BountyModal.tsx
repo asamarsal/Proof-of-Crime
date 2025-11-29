@@ -4,6 +4,7 @@ import { X, ExternalLink, Users, Clock, Shield, AlertTriangle, CheckCircle2, Awa
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import Image from "next/image"
+import { useRouter } from "next/navigation"
 
 interface BountyModalProps {
   isOpen: boolean
@@ -89,10 +90,12 @@ export default function BountyModal({ isOpen, onClose, bounty }: BountyModalProp
     "Final reward amounts are subject to severity assessment by the security team"
   ]
 
+  const router = useRouter()
+
   const handleJoinBounty = () => {
-    // Handle join bounty logic
-    console.log("Joining bounty:", bounty.id)
     onClose()
+    // Redirect to submit-case with bounty details
+    router.push(`/submit-case?bountyId=${bounty.id}&bountyTitle=${encodeURIComponent(bounty.title)}&company=${encodeURIComponent(bounty.company.name)}`)
   }
 
   return (
