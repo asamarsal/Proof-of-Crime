@@ -95,8 +95,8 @@ export default function AnalyticsPage() {
       // 2. Ensure the agent is running with the character ID
       // 3. Update the API_URL below
       
-      const USE_REAL_API = false // Set to true to use real backend
-      const API_URL = "http://localhost:3000/00000000-0000-0000-0000-000000000000/message" // Replace UUID with your Agent ID
+      const USE_REAL_API = true // Set to true to use real backend
+      const API_URL = "https://proof-of-crime.onrender.com/sniper/message" // Replace UUID with your Agent ID
 
       if (USE_REAL_API) {
         const response = await fetch(API_URL, {
