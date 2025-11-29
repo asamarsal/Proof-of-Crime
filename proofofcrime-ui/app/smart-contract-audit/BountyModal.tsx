@@ -189,6 +189,15 @@ export default function BountyModal({ isOpen, onClose, bounty, onBountyJoined }:
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ userId: address }),
         })
+        
+        if (!response.ok) {
+          throw new Error(`API error: ${response.status}`)
+        }
+        
+        setIsJoining(false)
+        alert("Finding submitted successfully on-chain and saved to database!")
+      } catch (error) {
+        console.error('Error submitting to API:', error)
         setIsJoining(false)
         alert("Finding submitted on-chain but failed to save details. Transaction confirmed!")
       }
