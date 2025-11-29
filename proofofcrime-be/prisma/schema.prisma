@@ -57,6 +57,8 @@ model Case {
   description       String         @db.Text
   transactionHashes String?        @db.Text
   status            CaseStatus     @default(PENDING)
+  riskScore         Int            @default(0)
+  riskLevel         RiskLevel      @default(LOW)
 
   // Smart Contract Audit specific fields
   vulnerabilityType String?
@@ -134,6 +136,13 @@ enum CaseStatus {
   VERIFIED
   REJECTED
   CLOSED
+}
+
+enum RiskLevel {
+  CRITICAL
+  HIGH
+  MEDIUM
+  LOW
 }
 
 model Evidence {

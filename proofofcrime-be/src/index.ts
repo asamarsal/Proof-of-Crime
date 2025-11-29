@@ -78,48 +78,37 @@ app.use((req: Request, res: Response) => {
 // Error handler (must be last)
 app.use(errorHandler)
 
-// Export app for Vercel
-export default app
+// Start server
+const server = app.listen(PORT, async () => {
+    console.log(`🚀 Server running on port ${PORT}`)
+    console.log(`📊 Environment: ${process.env.NODE_ENV || 'development'}`)
+    console.log(`🔗 Frontend URL: ${process.env.FRONTEND_URL || 'http://localhost:3000'}`)
 
-// Start server if running directly
-import { fileURLToPath } from 'url'
-import path from 'path'
+    // Test database connection
+    try {
+        await prisma.$connect()
+        console.log('✅ Database connected successfully')
+    } catch (error) {
+        console.error('❌ Database connection failed:', error)
+        process.exit(1)
+    }
+})
 
-const __filename = fileURLToPath(import.meta.url)
-const entryFile = process.argv[1]
-
-if (entryFile === __filename || entryFile.endsWith(path.basename(__filename))) {
-    const server = app.listen(PORT, async () => {
-        console.log(`🚀 Server running on port ${PORT}`)
-        console.log(`📊 Environment: ${process.env.NODE_ENV || 'development'}`)
-        console.log(`🔗 Frontend URL: ${process.env.FRONTEND_URL || 'http://localhost:3000'}`)
-
-        // Test database connection
-        try {
-            await prisma.$connect()
-            console.log('✅ Database connected successfully')
-        } catch (error) {
-            console.error('❌ Database connection failed:', error)
-            process.exit(1)
-        }
+// Graceful shutdown
+process.on('SIGTERM', async () => {
+    console.log('SIGTERM signal received: closing HTTP server')
+    server.close(async () => {
+        await prisma.$disconnect()
+        console.log('HTTP server closed')
+        process.exit(0)
     })
+})
 
-    // Graceful shutdown
-    process.on('SIGTERM', async () => {
-        console.log('SIGTERM signal received: closing HTTP server')
-        server.close(async () => {
-            await prisma.$disconnect()
-            console.log('HTTP server closed')
-            process.exit(0)
-        })
+process.on('SIGINT', async () => {
+    console.log('SIGINT signal received: closing HTTP server')
+    server.close(async () => {
+        await prisma.$disconnect()
+        console.log('HTTP server closed')
+        process.exit(0)
     })
-
-    process.on('SIGINT', async () => {
-        console.log('SIGINT signal received: closing HTTP server')
-        server.close(async () => {
-            await prisma.$disconnect()
-            console.log('HTTP server closed')
-            process.exit(0)
-        })
-    })
-}
+})

@@ -38,7 +38,8 @@ export default function SmartContractAuditPage() {
 
   const fetchBounties = async () => {
     try {
-      const response = await fetch('/api/bounties?category=SMART_CONTRACT_AUDIT')
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'
+      const response = await fetch(`${apiUrl}/api/bounties?category=SMART_CONTRACT_AUDIT`)
       const data = await response.json()
       setBounties(data)
     } catch (error) {

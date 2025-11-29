@@ -6,7 +6,7 @@
   "type": "module",
   "scripts": {
     "dev": "ts-node-dev --respawn --transpile-only src/index.ts",
-    "build": "echo 'Build skipped - using tsx for production'",
+    "build": "tsc",
     "start": "tsx src/index.ts",
     "db:generate": "prisma generate",
     "db:push": "prisma db push",
