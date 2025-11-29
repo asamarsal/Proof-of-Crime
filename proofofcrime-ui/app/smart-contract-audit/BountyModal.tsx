@@ -8,39 +8,50 @@ import Image from "next/image"
 interface BountyModalProps {
   isOpen: boolean
   onClose: () => void
-  bounty: {
-    id: number
+  bounty?: {
+    id: string
+    bountyId: string
     title: string
-    company: string
     description: string
-    reward: string
+    category: string
+    totalReward: number
     severity: string
-    scope: string
-    participants: number
-    deadline: string
     status: string
+    deadline: string
+    company: {
+      name: string
+      logo?: string
+      website?: string
+      github?: string
+      discord?: string
+      telegram?: string
+      description?: string
+    }
+    participants: any[]
+    scope: string
   }
 }
 
-export default function BountyModal({ isOpen, onClose, bounty }: BountyModalProps) {
-  if (!isOpen) return null
 
-  // Mock data - in production, this would come from props or API
+export default function BountyModal({ isOpen, onClose, bounty }: BountyModalProps) {
+  if (!isOpen || !bounty) return null
+
+  // Company details from API or use defaults
   const companyDetails = {
-    logo: "/placeholder-logo.png", // You can generate this with generate_image
-    name: bounty.company,
-    website: "https://defiswap.io",
-    github: "https://github.com/defiswap",
-    discord: "https://discord.gg/defiswap",
-    telegram: "https://t.me/defiswap",
-    description: "Leading decentralized exchange protocol focused on capital efficiency and user experience."
+    logo: bounty.company.logo || "/placeholder-logo.png",
+    name: bounty.company.name,
+    website: bounty.company.website || "https://example.com",
+    github: bounty.company.github || "https://github.com/example",
+    discord: bounty.company.discord || "https://discord.gg/example",
+    telegram: bounty.company.telegram || "https://t.me/example",
+    description: bounty.company.description || "Leading decentralized exchange protocol."
   }
 
   const auditInfo = {
-    totalReward: bounty.reward,
-    deadline: bounty.deadline,
+    totalReward: `$${bounty.totalReward.toLocaleString()}`,
+    deadline: new Date(bounty.deadline).toLocaleDateString(),
     category: bounty.scope,
-    participants: bounty.participants,
+    participants: bounty.participants.length,
     objective: bounty.description
   }
 
@@ -112,7 +123,7 @@ export default function BountyModal({ isOpen, onClose, bounty }: BountyModalProp
                 </Badge>
               </div>
               <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20">
-                {bounty.company}
+                {bounty.company.name}
               </Badge>
             </div>
             <button

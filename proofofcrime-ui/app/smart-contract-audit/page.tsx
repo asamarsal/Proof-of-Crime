@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Navigation from "@/components/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
@@ -9,58 +9,44 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Shield, Clock, Users, ArrowRight, CheckCircle } from "lucide-react"
 import BountyModal from "./BountyModal"
 
+interface Bounty {
+  id: string
+  bountyId: string
+  title: string
+  description: string
+  category: string
+  totalReward: number
+  severity: string
+  status: string
+  deadline: string
+  company: {
+    name: string
+    logo?: string
+  }
+  participants: any[]
+  scope: string
+}
+
 export default function SmartContractAuditPage() {
-  const [selectedBounty, setSelectedBounty] = useState<number | null>(null)
-  const bounties = [
-    {
-      id: 1,
-      title: "DeFiSwap V3 Protocol Audit",
-      company: "DeFiSwap DAO",
-      description: "Comprehensive security audit for the upcoming V3 AMM protocol including concentrated liquidity features.",
-      reward: "$150,000",
-      severity: "Critical",
-      scope: "Smart Contracts (Solidity)",
-      participants: 12,
-      deadline: "2025-12-15",
-      status: "active",
-    },
-    {
-      id: 2,
-      title: "NFT Marketplace Security Review",
-      company: "ArtBlock",
-      description: "Security assessment of the new marketplace contracts, focusing on royalty distribution and auction logic.",
-      reward: "$75,000",
-      severity: "High",
-      scope: "Smart Contracts (Solidity)",
-      participants: 8,
-      deadline: "2025-11-30",
-      status: "active",
-    },
-    {
-      id: 3,
-      title: "Cross-Chain Bridge Audit",
-      company: "BridgeTech",
-      description: "Audit of the locking and minting mechanisms for the new ETH-SOL bridge.",
-      reward: "$200,000",
-      severity: "Critical",
-      scope: "Smart Contracts (Rust/Solidity)",
-      participants: 25,
-      deadline: "2025-12-20",
-      status: "active",
-    },
-    {
-      id: 4,
-      title: "Stablecoin Yield Strategy",
-      company: "StableYield",
-      description: "Review of yield farming strategies and vault implementations.",
-      reward: "$50,000",
-      severity: "Medium",
-      scope: "Smart Contracts (Vyper)",
-      participants: 5,
-      deadline: "2025-11-25",
-      status: "active",
-    },
-  ]
+  const [selectedBounty, setSelectedBounty] = useState<string | null>(null)
+  const [bounties, setBounties] = useState<Bounty[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    fetchBounties()
+  }, [])
+
+  const fetchBounties = async () => {
+    try {
+      const response = await fetch('/api/bounties?category=SMART_CONTRACT_AUDIT')
+      const data = await response.json()
+      setBounties(data)
+    } catch (error) {
+      console.error('Error fetching bounties:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
 
   return (
     <div className="min-h-screen bg-background text-foreground selection:bg-primary/20">
@@ -99,53 +85,65 @@ export default function SmartContractAuditPage() {
           </div>
 
           <TabsContent value="active" className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
-              {bounties.map((bounty) => (
-                <Card key={bounty.id} className="glass border-primary/20 hover:border-primary/50 transition-all duration-300 hover:shadow-[0_0_20px_rgba(var(--primary-rgb),0.1)] group">
-                  <CardHeader>
-                    <div className="flex justify-between items-start mb-2">
-                      <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20">
-                        {bounty.company}
-                      </Badge>
-                    </div>
-                    <CardTitle className="text-xl group-hover:text-primary transition-colors">
-                      {bounty.title}
-                    </CardTitle>
-                    <CardDescription className="line-clamp-2 mt-2">
-                      {bounty.description}
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="grid grid-cols-2 gap-4 text-sm">
-                      <div className="flex items-center text-muted-foreground">
-                        <Shield className="w-4 h-4 mr-2 text-primary" />
-                        {bounty.scope}
+            {loading ? (
+              <div className="text-center py-20">
+                <p className="text-muted-foreground">Loading bounties...</p>
+              </div>
+            ) : bounties.length === 0 ? (
+              <div className="text-center py-20 glass rounded-lg border border-dashed border-muted-foreground/20">
+                <CheckCircle className="w-12 h-12 mx-auto text-muted-foreground mb-4 opacity-50" />
+                <h3 className="text-xl font-medium text-muted-foreground">No active bounties</h3>
+                <p className="text-sm text-muted-foreground/60 mt-2">Check back later for new opportunities.</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
+                {bounties.map((bounty) => (
+                  <Card key={bounty.id} className="glass border-primary/20 hover:border-primary/50 transition-all duration-300 hover:shadow-[0_0_20px_rgba(var(--primary-rgb),0.1)] group">
+                    <CardHeader>
+                      <div className="flex justify-between items-start mb-2">
+                        <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20">
+                          {bounty.company.name}
+                        </Badge>
                       </div>
-                      <div className="flex items-center text-muted-foreground">
-                        <Users className="w-4 h-4 mr-2 text-secondary" />
-                        {bounty.participants} Participants
+                      <CardTitle className="text-xl group-hover:text-primary transition-colors">
+                        {bounty.title}
+                      </CardTitle>
+                      <CardDescription className="line-clamp-2 mt-2">
+                        {bounty.description}
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div className="grid grid-cols-2 gap-4 text-sm">
+                        <div className="flex items-center text-muted-foreground">
+                          <Shield className="w-4 h-4 mr-2 text-primary" />
+                          {bounty.scope}
+                        </div>
+                        <div className="flex items-center text-muted-foreground">
+                          <Users className="w-4 h-4 mr-2 text-secondary" />
+                          {bounty.participants.length} Participants
+                        </div>
+                        <div className="flex items-center text-muted-foreground">
+                          <Clock className="w-4 h-4 mr-2 text-yellow-500" />
+                          {new Date(bounty.deadline).toLocaleDateString()}
+                        </div>
+                        <div className="flex items-center font-bold text-green-400">
+                          <span className="mr-2">💰</span>
+                          ${bounty.totalReward.toLocaleString()}
+                        </div>
                       </div>
-                      <div className="flex items-center text-muted-foreground">
-                        <Clock className="w-4 h-4 mr-2 text-yellow-500" />
-                        {bounty.deadline}
-                      </div>
-                      <div className="flex items-center font-bold text-green-400">
-                        <span className="mr-2">💰</span>
-                        {bounty.reward}
-                      </div>
-                    </div>
-                  </CardContent>
-                  <CardFooter>
-                    <Button 
-                      onClick={() => setSelectedBounty(bounty.id)}
-                      className="w-full bg-primary/10 hover:bg-primary/20 text-primary border border-primary/50 group-hover:bg-primary group-hover:text-primary-foreground transition-all duration-300"
-                    >
-                      Join Bounty <ArrowRight className="w-4 h-4 ml-2" />
-                    </Button>
-                  </CardFooter>
-                </Card>
-              ))}
-            </div>
+                    </CardContent>
+                    <CardFooter>
+                      <Button 
+                        onClick={() => setSelectedBounty(bounty.id)}
+                        className="w-full bg-primary/10 hover:bg-primary/20 text-primary border border-primary/50 group-hover:bg-primary group-hover:text-primary-foreground transition-all duration-300"
+                      >
+                        Join Bounty <ArrowRight className="w-4 h-4 ml-2" />
+                      </Button>
+                    </CardFooter>
+                  </Card>
+                ))}
+              </div>
+            )}
           </TabsContent>
 
           <TabsContent value="completed">
@@ -177,7 +175,7 @@ export default function SmartContractAuditPage() {
         <BountyModal
           isOpen={selectedBounty !== null}
           onClose={() => setSelectedBounty(null)}
-          bounty={bounties.find(b => b.id === selectedBounty)!}
+          bounty={bounties.find(b => b.id === selectedBounty)}
         />
       )}
     </div>
