@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Navigation from "@/components/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
@@ -16,98 +16,45 @@ export default function PeopleBountyPage() {
   const [selectedSuspect, setSelectedSuspect] = useState<any>(null)
   const [showEvidenceModal, setShowEvidenceModal] = useState(false)
   // Mock Data for Suspects
-  const suspects = [
-    {
-      id: 1,
-      name: "Viktor Petrov",
-      alias: "CryptoGhost",
-      status: "WANTED",
-      riskLevel: "EXTREME RISK",
-      bounty: "500,000 USDT",
-      estimatedLoss: "$12.5M",
-      victims: "2,500+",
-      nationality: "Russia",
-      age: "34",
-      sex: "Male",
-      crimes: ["Rug Pull", "Identity Theft", "Money Laundering"],
-      image: "/suspect-photo/viktorpetrov.jpg",
-    },
-    {
-      id: 2,
-      name: "Sarah Chen",
-      alias: "PhantomQueen",
-      status: "INVESTIGATING",
-      riskLevel: "HIGH RISK",
-      bounty: "250,000 USDT",
-      estimatedLoss: "$5.8M",
-      victims: "1,200+",
-      nationality: "China",
-      age: "28",
-      sex: "Female",
-      crimes: ["NFT Fraud", "Phishing", "Social Engineering"],
-      image: "/suspect-photo/sarahchen.jpg",
-    },
-    {
-      id: 3,
-      name: "Marcus Johnson",
-      alias: "DarkNode",
-      status: "WANTED",
-      riskLevel: "EXTREME RISK",
-      bounty: "750,000 USDT",
-      estimatedLoss: "$20M",
-      victims: "5,000+",
-      nationality: "USA",
-      age: "42",
-      sex: "Male",
-      crimes: ["Pump & Dump", "Market Manipulation", "Insider Trading"],
-      image: "/suspect-photo/marcusjohnson.jpg",
-    },
-    {
-      id: 4,
-      name: "Dmitri Volkov",
-      alias: "ShadowMiner",
-      status: "WANTED",
-      riskLevel: "HIGH RISK",
-      bounty: "300,000 USDT",
-      estimatedLoss: "$8.2M",
-      victims: "1,800+",
-      nationality: "Ukraine",
-      age: "31",
-      sex: "Male",
-      crimes: ["Mining Scam", "Ponzi Scheme", "Wire Fraud"],
-      image: "https://placehold.co/200x200/1a1a1a/FFF?text=DV",
-    },
-    {
-      id: 5,
-      name: "Yuki Tanaka",
-      alias: "SilentWhale",
-      status: "INVESTIGATING",
-      riskLevel: "MEDIUM RISK",
-      bounty: "150,000 USDT",
-      estimatedLoss: "$3.5M",
-      victims: "800+",
-      nationality: "Japan",
-      age: "26",
-      sex: "Female",
-      crimes: ["Wash Trading", "Fake Volume", "Token Manipulation"],
-      image: "https://placehold.co/200x200/1a1a1a/FFF?text=YT",
-    },
-    {
-      id: 6,
-      name: "Ahmed Al-Rashid",
-      alias: "DesertFox",
-      status: "WANTED",
-      riskLevel: "EXTREME RISK",
-      bounty: "600,000 USDT",
-      estimatedLoss: "$15M",
-      victims: "3,500+",
-      nationality: "UAE",
-      age: "38",
-      sex: "Male",
-      crimes: ["Smart Contract Exploit", "DeFi Hack", "Rug Pull"],
-      image: "https://placehold.co/200x200/1a1a1a/FFF?text=AR",
-    },
-  ]
+  const [suspects, setSuspects] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    const fetchSuspects = async () => {
+      try {
+        const response = await fetch('https://proof-of-crime-dogq.onrender.com/api/bounties?category=PEOPLE_BOUNTY')
+        const data = await response.json()
+        if (data.bounties) {
+          const mappedSuspects = data.bounties.map((b: any) => ({
+            id: b.id,
+            name: b.title,
+            alias: b.bountyId,
+            status: b.status === 'ACTIVE' ? 'WANTED' : b.status,
+            riskLevel: b.severity === 'CRITICAL' ? 'EXTREME RISK' : `${b.severity} RISK`,
+            bounty: `${parseInt(b.totalReward).toLocaleString()} ${b.rewardToken}`,
+            estimatedLoss: "Unknown", // Not available in API
+            victims: "Unknown", // Not available in API
+            nationality: "Unknown", // Not available in API
+            age: "Unknown", // Not available in API
+            sex: "Unknown", // Not available in API
+            crimes: b.inScope ? b.inScope.slice(0, 3) : ["Crypto Crime"],
+            image: "https://placehold.co/200x200/1a1a1a/FFF?text=?",
+            description: b.description, // Added for modal
+            activityPeriod: "Unknown", // Added for modal
+            lastSeen: "Unknown", // Added for modal
+            walletAddresses: [] // Added for modal
+          }))
+          setSuspects(mappedSuspects)
+        }
+      } catch (error) {
+        console.error('Error fetching suspects:', error)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchSuspects()
+  }, [])
 
   const getStatusColor = (status: string) => {
     return status === "WANTED" ? "bg-red-500" : "bg-orange-500"
@@ -124,6 +71,14 @@ export default function PeopleBountyPage() {
       default:
         return "bg-green-500/20 text-green-500 border-green-500/50"
     }
+  }
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background text-foreground flex items-center justify-center">
+        <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-primary"></div>
+      </div>
+    )
   }
 
   return (
@@ -263,7 +218,7 @@ export default function PeopleBountyPage() {
                   <div className="mb-4">
                     <div className="text-xs text-muted-foreground mb-2">Crime Types</div>
                     <div className="flex flex-wrap gap-2">
-                      {suspect.crimes.map((crime, index) => (
+                      {suspect.crimes.map((crime: string, index: number) => (
                         <Badge key={index} variant="outline" className="text-xs border-primary/30 text-primary">
                           {crime}
                         </Badge>
