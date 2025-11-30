@@ -237,7 +237,7 @@ export default function DashboardPage() {
               {trendingCases.map((item: typeof trendingCases[number]) => (
                 <Link key={item.id} href={`/case/${item.id}`}>
                   <Card className="glass border-border/50 hover:border-primary/30 transition-all duration-300 group cursor-pointer gap-6">
-                    <CardContent className="p-6">
+                    <CardContent className="p-6 my-6">
                       <div className="flex items-start gap-4">
                         {/* Risk Indicator */}
                         <div className={`w-1.5 h-20 rounded-full ${getRiskColor(item.risk)} flex-shrink-0`} />
