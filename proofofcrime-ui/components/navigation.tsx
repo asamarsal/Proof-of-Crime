@@ -43,9 +43,9 @@ export default function Navigation() {
               Dashboard
             </Link>
 
-            <Link href="/cases" className={`text-sm transition-colors duration-300 ${pathname === '/cases' ? 'text-primary neon-text-cyan font-medium' : 'text-white hover:text-primary'}`}>
+            {/* <Link href="/cases" className={`text-sm transition-colors duration-300 ${pathname === '/cases' ? 'text-primary neon-text-cyan font-medium' : 'text-white hover:text-primary'}`}>
               Cases
-            </Link>
+            </Link> */}
 
             {/* Desktop Dropdown */}
             <DropdownMenu>
@@ -115,9 +115,9 @@ export default function Navigation() {
               Dashboard
             </Link>
 
-            <Link href="/cases" className={`block text-sm transition-colors ${pathname === '/cases' ? 'text-primary neon-text-cyan font-medium' : 'text-muted-foreground hover:text-primary'}`}>
+            {/* <Link href="/cases" className={`block text-sm transition-colors ${pathname === '/cases' ? 'text-primary neon-text-cyan font-medium' : 'text-muted-foreground hover:text-primary'}`}>
               Cases
-            </Link>
+            </Link> */}
 
             {/* Mobile Dropdown */}
             <button
