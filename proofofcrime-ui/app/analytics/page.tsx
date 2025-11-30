@@ -155,7 +155,7 @@ export default function AnalyticsPage() {
               <CardHeader><CardTitle className="flex items-center gap-2"><Bot className="w-5 h-5" />System Status</CardTitle></CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  <div className="flex justify-between"><span>Gemini API</span><Badge className="bg-green-500/20 text-green-400">Online</Badge></div>
+                  <div className="flex justify-between"><span>Bot</span><Badge className="bg-green-500/20 text-green-400">Online</Badge></div>
                 </div>
               </CardContent>
             </Card>
