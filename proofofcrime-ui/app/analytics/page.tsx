@@ -8,25 +8,16 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Input } from "@/components/ui/input"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Badge } from "@/components/ui/badge"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { 
-  Terminal, 
-  Send, 
-  Bot, 
-  Cpu, 
-  Activity, 
-  Shield, 
-  Search, 
-  AlertTriangle, 
-  CheckCircle2, 
-  Settings,
-  Zap,
-  LineChart,
-  Lock
+import {
+  Terminal,
+  Send,
+  Bot,
+  Activity,
+  Settings
 } from "lucide-react"
+
 import { Area, AreaChart, ResponsiveContainer, Tooltip, XAxis, YAxis, CartesianGrid } from "recharts"
 
-// Mock data for the chart
 const data = [
   { time: "00:00", value: 400 },
   { time: "04:00", value: 300 },
@@ -55,25 +46,25 @@ export default function AnalyticsPage() {
     {
       id: "2",
       role: "assistant",
-      content: "Sniper Bot online. Connected to Solana mainnet. Monitoring mempool for anomalies. Ready for commands.",
+      content:
+        "Sniper Bot online. Connected to Lisk Sepolia Testnet. Monitoring mempool for anomalies. Ready for commands.",
       timestamp: new Date()
     }
   ])
+
   const [input, setInput] = useState("")
   const [isTyping, setIsTyping] = useState(false)
-  const [isConnected, setIsConnected] = useState(true)
   const scrollAreaRef = useRef<HTMLDivElement>(null)
 
-  // Auto-scroll to bottom of chat
+  // Auto-scroll
   useEffect(() => {
     if (scrollAreaRef.current) {
-      const scrollContainer = scrollAreaRef.current.querySelector('[data-radix-scroll-area-viewport]');
-      if (scrollContainer) {
-        scrollContainer.scrollTop = scrollContainer.scrollHeight;
-      }
+      const viewport = scrollAreaRef.current.querySelector('[data-radix-scroll-area-viewport]')
+      if (viewport) viewport.scrollTop = viewport.scrollHeight
     }
   }, [messages])
 
+  // ⭐⭐⭐ HERE — GEMINI API IMPLEMENTATION ⭐⭐⭐
   const handleSendMessage = async () => {
     if (!input.trim()) return
 
@@ -88,78 +79,58 @@ export default function AnalyticsPage() {
     setInput("")
     setIsTyping(true)
 
-    // Simulate ElizaOS processing delay or call real API
     try {
-      // NOTE: To use the real ElizaOS API:
-      // 1. Run your ElizaOS server (default: http://localhost:3000)
-      // 2. Ensure the agent is running with the character ID
-      // 3. Update the API_URL below
-      
-      const USE_REAL_API = true // Set to true to use real backend
-      const API_URL = "https://proof-of-crime.onrender.com/sniper/message" // Replace UUID with your Agent ID
+      const API_KEY = process.env.NEXT_PUBLIC_GEMINI_KEY
+      if (!API_KEY) throw new Error("Missing Gemini API Key")
 
-      if (USE_REAL_API) {
-        const response = await fetch(API_URL, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            text: input,
-            userId: "user1",
-            userName: "User",
-          }),
-        })
+      const GEMINI_URL =
+        "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent"
 
-        if (!response.ok) throw new Error("API request failed")
-
-        const data = await response.json()
-        // ElizaOS returns an array of messages
-        const botResponses = data.map((msg: any, idx: number) => ({
-          id: (Date.now() + idx).toString(),
-          role: "assistant",
-          content: msg.text,
-          timestamp: new Date()
-        }))
-
-        setMessages(prev => [...prev, ...botResponses])
-      } else {
-        // Simulation Mode (Lisk Sepolia)
-        setTimeout(() => {
-          let responseText = ""
-          const lowerInput = userMsg.content.toLowerCase()
-
-          if (lowerInput.includes("scan") || lowerInput.includes("analyze")) {
-            responseText = "Scanning target contract on Lisk Sepolia... \n\nAnalysis Complete:\n- Liquidity: 5,200 LSK (Locked)\n- Mint Authority: Disabled\n- Freeze Authority: Disabled\n- Top 10 Holders: 12%\n\nRisk Score: LOW (Safe to ape)"
-          } else if (lowerInput.includes("rug") || lowerInput.includes("scam")) {
-            responseText = "ALERT: Detected suspicious pattern in recent Lisk deployment 0x7f...3a21. Liquidity removed 30 seconds after launch. Marking as CONFIRMED RUGPULL."
-          } else if (lowerInput.includes("help")) {
-            responseText = "Available Lisk Sepolia commands:\n/scan [address] - Analyze token security\n/monitor - Start real-time mempool monitoring\n/snipe [address] [amount] - Execute snipe trade\n/status - System status report"
-          } else {
-            responseText = "Command received. Processing request on Lisk Sepolia chain... \n(Note: Set USE_REAL_API = true in code to connect to actual ElizaOS backend)"
+      // Request body
+      const requestBody = {
+        contents: [
+          {
+            parts: [{ text: input }]
           }
-
-          const botMsg: Message = {
-            id: (Date.now() + 1).toString(),
-            role: "assistant",
-            content: responseText,
-            timestamp: new Date()
-          }
-
-          setMessages(prev => [...prev, botMsg])
-        }, 1500)
+        ]
       }
-    } catch (error) {
-      console.error("Error sending message:", error)
-      const errorMsg: Message = {
+
+      const response = await fetch(GEMINI_URL, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-Goog-Api-Key": API_KEY
+        },
+        body: JSON.stringify(requestBody)
+      })
+
+      if (!response.ok) throw new Error("Gemini API Error")
+
+      const data = await response.json()
+
+      const botText =
+        data?.candidates?.[0]?.content?.parts?.[0]?.text ||
+        "⚠️ Gemini returned empty response."
+
+      const botMsg: Message = {
         id: (Date.now() + 1).toString(),
+        role: "assistant",
+        content: botText,
+        timestamp: new Date()
+      }
+
+      setMessages(prev => [...prev, botMsg])
+    } catch (err) {
+      console.error(err)
+      const errorMsg: Message = {
+        id: (Date.now() + 2).toString(),
         role: "system",
-        content: "Error: Failed to connect to ElizaOS agent. Please check if the server is running.",
+        content: "⚠️ Error: Could not reach Gemini API.",
         timestamp: new Date()
       }
       setMessages(prev => [...prev, errorMsg])
     }
-    
+
     setIsTyping(false)
   }
 
@@ -173,61 +144,26 @@ export default function AnalyticsPage() {
   return (
     <div className="min-h-screen bg-background text-foreground relative flex flex-col">
       <Navigation />
-      
+
       <main className="flex-1 pt-24 pb-8 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto w-full h-[calc(100vh-6rem)]">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-full">
-          
-          {/* Left Panel - Analytics & Status */}
+
+          {/* LEFT PANEL */}
           <div className="lg:col-span-1 flex flex-col gap-6 h-full overflow-y-auto">
-            {/* Status Card */}
-            <Card className="glass border-primary/30 shadow-lg shadow-primary/5">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-lg flex items-center gap-2">
-                  <Bot className="w-5 h-5 text-primary" />
-                  System Status
-                </CardTitle>
-              </CardHeader>
+
+            <Card className="glass border-primary/30 shadow-lg">
+              <CardHeader><CardTitle className="flex items-center gap-2"><Bot className="w-5 h-5" />System Status</CardTitle></CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-muted-foreground">ElizaOS Core</span>
-                    <Badge variant="outline" className="bg-green-500/10 text-green-500 border-green-500/30 flex items-center gap-1">
-                      <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
-                      Online
-                    </Badge>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-muted-foreground">Sniper Plugin</span>
-                    <Badge variant="outline" className="bg-green-500/10 text-green-500 border-green-500/30">
-                      Active
-                    </Badge>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-muted-foreground">Solana RPC</span>
-                    <Badge variant="outline" className="bg-yellow-500/10 text-yellow-500 border-yellow-500/30">
-                      98ms Latency
-                    </Badge>
-                  </div>
-                  
-                  <div className="pt-2 border-t border-border/50">
-                    <div className="flex items-center justify-between text-xs text-muted-foreground mb-1">
-                      <span>CPU Usage</span>
-                      <span>24%</span>
-                    </div>
-                    <div className="h-1.5 w-full bg-secondary rounded-full overflow-hidden">
-                      <div className="h-full bg-primary w-[24%] rounded-full" />
-                    </div>
-                  </div>
+                  <div className="flex justify-between"><span>Gemini API</span><Badge className="bg-green-500/20 text-green-400">Online</Badge></div>
                 </div>
               </CardContent>
             </Card>
 
-            {/* Live Activity Chart */}
             <Card className="glass border-border/50 flex-1 min-h-[300px]">
               <CardHeader>
-                <CardTitle className="text-lg flex items-center gap-2">
-                  <Activity className="w-5 h-5 text-cyan-500" />
-                  Network Activity
+                <CardTitle className="flex items-center gap-2">
+                  <Activity className="w-5 h-5 text-cyan-500" /> Network Activity
                 </CardTitle>
                 <CardDescription>Real-time transaction volume</CardDescription>
               </CardHeader>
@@ -236,135 +172,98 @@ export default function AnalyticsPage() {
                   <AreaChart data={data}>
                     <defs>
                       <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#8b5cf6" stopOpacity={0.3}/>
-                        <stop offset="95%" stopColor="#8b5cf6" stopOpacity={0}/>
+                        <stop offset="5%" stopColor="#8b5cf6" stopOpacity={0.3} />
+                        <stop offset="95%" stopColor="#8b5cf6" stopOpacity={0} />
                       </linearGradient>
                     </defs>
                     <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
-                    <XAxis dataKey="time" stroke="#666" fontSize={12} tickLine={false} axisLine={false} />
-                    <YAxis stroke="#666" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(value) => `${value}`} />
-                    <Tooltip 
-                      contentStyle={{ backgroundColor: 'rgba(0,0,0,0.8)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px' }}
-                      itemStyle={{ color: '#fff' }}
-                    />
-                    <Area type="monotone" dataKey="value" stroke="#8b5cf6" strokeWidth={2} fillOpacity={1} fill="url(#colorValue)" />
+                    <XAxis dataKey="time" />
+                    <YAxis />
+                    <Tooltip />
+                    <Area type="monotone" dataKey="value" stroke="#8b5cf6" fill="url(#colorValue)" />
                   </AreaChart>
                 </ResponsiveContainer>
               </CardContent>
             </Card>
+
           </div>
 
-          {/* Center/Right Panel - Chat Interface */}
+          {/* RIGHT PANEL - CHAT */}
           <div className="lg:col-span-2 h-full flex flex-col">
-            <Card className="glass border-primary/20 flex flex-col h-full shadow-2xl shadow-primary/5 overflow-hidden">
-              {/* Chat Header */}
-              <div className="p-4 border-b border-border/50 bg-background/50 flex items-center justify-between backdrop-blur-md">
+            <Card className="glass border-primary/20 flex flex-col h-full overflow-hidden">
+              <div className="p-4 border-b flex justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-primary to-purple-600 flex items-center justify-center shadow-lg shadow-primary/20">
+                  <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center">
                     <Bot className="w-6 h-6 text-white" />
                   </div>
                   <div>
-                    <h2 className="font-bold text-lg flex items-center gap-2">
-                      Sniper Bot
-                      <Badge variant="secondary" className="text-[10px] h-5 px-1.5">v1.0.2</Badge>
-                    </h2>
-                    <p className="text-xs text-muted-foreground flex items-center gap-1">
-                      <span className="w-1.5 h-1.5 rounded-full bg-green-500 inline-block" />
-                      ElizaOS Agent Active
-                    </p>
+                    <h2 className="font-bold">Gemini Sniper AI</h2>
+                    <p className="text-xs text-muted-foreground">Powered by Google Gemini Flash</p>
                   </div>
                 </div>
-                <div className="flex items-center gap-2">
-                  <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground">
-                    <Settings className="w-5 h-5" />
-                  </Button>
-                  <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground">
-                    <Terminal className="w-5 h-5" />
-                  </Button>
+                <div className="flex gap-2">
+                  <Button size="icon" variant="ghost"><Settings /></Button>
+                  <Button size="icon" variant="ghost"><Terminal /></Button>
                 </div>
               </div>
 
-              {/* Chat Messages */}
               <ScrollArea className="flex-1 p-4" ref={scrollAreaRef}>
                 <div className="space-y-4">
-                  {messages.map((msg) => (
-                    <div
-                      key={msg.id}
-                      className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
-                    >
-                      <div
-                        className={`
-                          max-w-[80%] rounded-2xl px-4 py-3 text-sm
-                          ${msg.role === "user" 
-                            ? "bg-primary text-primary-foreground rounded-tr-none" 
-                            : msg.role === "system"
-                            ? "bg-secondary/50 text-muted-foreground font-mono text-xs w-full text-center border border-border/50"
-                            : "bg-secondary text-secondary-foreground rounded-tl-none border border-border/50"
-                          }
-                        `}
-                      >
+                  {messages.map(msg => (
+                    <div key={msg.id} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
+                      <div className={`max-w-[80%] rounded-xl px-4 py-3 text-sm ${
+                        msg.role === "user"
+                          ? "bg-primary text-primary-foreground"
+                          : msg.role === "system"
+                          ? "bg-secondary/50 text-muted-foreground text-center border"
+                          : "bg-secondary border"
+                      }`}>
                         {msg.role === "assistant" && (
-                          <div className="flex items-center gap-2 mb-1 text-xs text-primary font-semibold opacity-70">
-                            <Bot className="w-3 h-3" />
-                            Sniper
+                          <div className="flex items-center gap-2 text-xs text-primary mb-1">
+                            <Bot className="w-3 h-3" /> Gemini
                           </div>
                         )}
-                        <div className="whitespace-pre-wrap leading-relaxed">
-                          {msg.content}
-                        </div>
-                        <div className={`text-[10px] mt-1 opacity-50 ${msg.role === "user" ? "text-right" : "text-left"}`}>
-                          {msg.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        {msg.content}
+                        <div className="text-[10px] mt-1 opacity-50">
+                          {msg.timestamp.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                         </div>
                       </div>
                     </div>
                   ))}
+
                   {isTyping && (
                     <div className="flex justify-start">
-                      <div className="bg-secondary text-secondary-foreground rounded-2xl rounded-tl-none px-4 py-3 border border-border/50 flex items-center gap-1">
-                        <div className="w-2 h-2 bg-primary/50 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
-                        <div className="w-2 h-2 bg-primary/50 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
-                        <div className="w-2 h-2 bg-primary/50 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                      <div className="bg-secondary px-4 py-3 rounded-xl border flex items-center gap-1">
+                        <div className="w-2 h-2 bg-primary/50 rounded-full animate-bounce" />
+                        <div className="w-2 h-2 bg-primary/50 rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
+                        <div className="w-2 h-2 bg-primary/50 rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
                       </div>
                     </div>
                   )}
                 </div>
               </ScrollArea>
 
-              {/* Chat Input */}
-              <div className="p-4 bg-background/50 border-t border-border/50 backdrop-blur-md">
+              <div className="p-4 border-t">
                 <div className="relative flex items-center gap-2">
                   <Input
                     value={input}
-                    onChange={(e) => setInput(e.target.value)}
+                    onChange={e => setInput(e.target.value)}
                     onKeyDown={handleKeyDown}
-                    placeholder="Type a command (e.g., /scan, /analyze)..."
-                    className="pr-12 bg-secondary/50 border-primary/20 focus:border-primary/50 h-12 rounded-xl"
+                    placeholder="Ask Gemini..."
+                    className="pr-12 h-12 rounded-xl"
                   />
-                  <Button 
-                    onClick={handleSendMessage}
-                    size="icon"
-                    className="absolute right-1 top-1 h-10 w-10 rounded-lg bg-primary hover:bg-primary/90 transition-all"
-                  >
+                  <Button onClick={handleSendMessage} className="absolute right-1 top-1 h-10 w-10">
                     <Send className="w-4 h-4" />
                   </Button>
                 </div>
-                <div className="flex gap-2 mt-2 overflow-x-auto pb-1">
-                  {["/scan", "/monitor", "/status", "Analyze recent rugpulls"].map((cmd) => (
-                    <button
-                      key={cmd}
-                      onClick={() => setInput(cmd)}
-                      className="text-xs px-3 py-1 rounded-full bg-secondary/50 hover:bg-primary/20 border border-border/50 hover:border-primary/30 transition-colors whitespace-nowrap"
-                    >
-                      {cmd}
-                    </button>
-                  ))}
-                </div>
               </div>
+
             </Card>
           </div>
+
         </div>
       </main>
-      
+
       <Footer />
     </div>
   )
