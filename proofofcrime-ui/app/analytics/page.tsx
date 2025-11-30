@@ -64,7 +64,6 @@ export default function AnalyticsPage() {
     }
   }, [messages])
 
-  // ⭐⭐⭐ HERE — GEMINI API IMPLEMENTATION ⭐⭐⭐
   const handleSendMessage = async () => {
     if (!input.trim()) return
 
@@ -197,8 +196,8 @@ export default function AnalyticsPage() {
                     <Bot className="w-6 h-6 text-white" />
                   </div>
                   <div>
-                    <h2 className="font-bold">Gemini Sniper AI</h2>
-                    <p className="text-xs text-muted-foreground">Powered by Google Gemini Flash</p>
+                    <h2 className="font-bold">Sniper AI</h2>
+                    <p className="text-xs text-muted-foreground">Powered by Google Proof of Crime</p>
                   </div>
                 </div>
                 <div className="flex gap-2">
